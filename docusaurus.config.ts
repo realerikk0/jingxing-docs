@@ -7,7 +7,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 const config: Config = {
   title: '井陉doc',
   tagline: '井陉 API 网关与 AI 工作台文档',
-  favicon: 'img/favicon.ico',
+  favicon: 'img/jingxing-mark.svg',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
@@ -61,7 +61,7 @@ const config: Config = {
       title: '井陉doc',
       logo: {
         alt: '井陉doc Logo',
-        src: 'img/logo.png',
+        src: 'img/jingxing-mark.svg',
       },
       items: [
         {
