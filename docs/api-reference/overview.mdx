@@ -1,21 +1,132 @@
 ---
 title: "API 概览"
 description: "说明井陉 API 的设计方式与参考文档结构"
+sidebar_position: 6
 ---
 
 # API 概览
 
-井陉当前以 OpenAI 兼容调用方式为主，同时保留控制台管理接口。
+这一页不打算替代 OpenAPI 文档，而是先帮你分清：
 
-## 这一栏怎么读
+1. 井陉到底有哪两类 API
+2. 你现在应该先看哪一类
+3. 哪些是接模型用的，哪些是管理后台用的
 
-- `API 使用说明`：先看鉴权、Base URL、模型兼容策略
-- `中转 API`：当前规范文件已同步到仓库的 `static/openapi/relay.json`
-- `控制台 API`：当前规范文件已同步到仓库的 `static/openapi/api.json`
+## 先说结论
 
-## 推荐补充
+- 如果你是接模型，先看中转 API
+- 如果你是做平台管理、控制台联动或后台集成，才需要看管理 API
+- 真正开始调接口前，先跑 `GET /v1/models`
 
-- 接入 OpenAPI 渲染插件，把规范转换成站内 API Reference
-- API 版本策略
-- 稳定接口与实验接口的区分方式
-- 限流与幂等性说明
+## 井陉现在有哪两类 API
+
+### 1. 中转 API
+
+这是绝大多数用户最先用到的那一类。  
+它主要解决：
+
+- 聊天
+- Responses
+- Embeddings
+- 图片
+- 视频
+- 模型列表
+
+当前仓库同步的规范文件是：
+
+- `static/openapi/relay.json`
+
+### 2. 后台管理 API
+
+这类接口主要给平台侧、管理后台或系统联动用。  
+它更关注：
+
+- 用户
+- 分组
+- 模型
+- 渠道
+- 配置
+- 登录 / 注册 / 状态
+
+当前仓库同步的规范文件是：
+
+- `static/openapi/api.json`
+
+## 如果你是普通用户，先看哪类
+
+几乎总是先看中转 API。  
+因为你最开始真正要做的事通常只有这些：
+
+- 拉模型列表
+- 发第一条聊天请求
+- 接客户端
+- 测图片或视频
+
+这些都属于中转 API。
+
+## 中转 API 里现在最值得先知道的路径
+
+根据当前仓库里的 `relay.json`，最值得优先关注的是：
+
+- `GET /v1/models`
+- `POST /v1/chat/completions`
+- `POST /v1/responses`
+- `POST /v1/embeddings`
+- `POST /v1/images/generations`
+- `POST /v1/images/edits`
+- `POST /v1/videos`
+- `GET /v1/videos/{task_id}`
+
+如果你还没做过任何验证，永远先从：
+
+- `GET /v1/models`
+
+开始。
+
+## 后台管理 API 什么时候才需要看
+
+只有在下面这些场景里，你才真的需要读后台管理 API：
+
+- 你在做控制台相关二次开发
+- 你在做平台联动
+- 你在做自动化管理脚本
+- 你需要接用户、模型、渠道、配置管理
+
+如果你现在只是想“把模型用起来”，那先别管它。
+
+## 当前仓库里已经同步了什么
+
+### 中转规范
+
+- 文件：`static/openapi/relay.json`
+- 当前路径数量：35
+
+### 管理规范
+
+- 文件：`static/openapi/api.json`
+- 当前路径数量：131
+
+这说明项目本身已经有比较完整的接口定义基础，只是站内还没把它渲染成更好读的可交互 API 参考。
+
+## 最推荐的阅读顺序
+
+1. [API 快速开始](/docs/getting-started/api-quickstart)
+2. [鉴权方式](/docs/api-reference/authentication)
+3. [OpenAI 兼容说明](/docs/api-reference/openai-compatibility)
+4. 再根据你要用的能力去看具体页面
+
+## 现在这页和 OpenAPI 的关系
+
+这页负责回答“看哪里”；  
+OpenAPI 规范负责回答“每个字段怎么传”。
+
+也就是说：
+
+- 这页是入口
+- OpenAPI 是明细
+
+## 下一步
+
+- 想看兼容迁移怎么做：前往[OpenAI 兼容说明](/docs/api-reference/openai-compatibility)
+- 想先把鉴权排通：前往[鉴权方式](/docs/api-reference/authentication)
+- 想先直接调第一条请求：前往[API 快速开始](/docs/getting-started/api-quickstart)

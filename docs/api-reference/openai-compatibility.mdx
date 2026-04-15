@@ -1,16 +1,143 @@
 ---
 title: "OpenAI 兼容说明"
 description: "说明井陉与 OpenAI SDK、客户端和接口命名的兼容关系"
+sidebar_position: 5
 ---
 
 # OpenAI 兼容说明
 
-井陉优先兼容 OpenAI 生态，方便用户直接迁移现有 SDK 和客户端。
+井陉最重要的用户价值之一，就是尽量让你在**少改动原有代码和客户端配置**的前提下接入平台。  
+这页要回答的就是：
 
-## 推荐写清楚
+1. 你原来用 OpenAI 的地方，哪些可以直接迁移
+2. 迁移时到底要改哪几项
+3. 哪些地方是兼容的，哪些地方不能想当然
 
-- Base URL 如何替换
-- 常用 SDK 是否可直接复用
-- 哪些模型名与官方不同
-- 哪些参数会被转译
-- 哪些接口是兼容的，哪些需要单独说明
+## 先说结论
+
+- 大多数现有 OpenAI SDK 和客户端，迁移时只需要改 `Base URL`、`API Key`、`model`
+- 兼容不代表一切都和 OpenAI 官方原生产品完全一样
+- 遇到问题时，先用最小请求验证，不要一上来先怪客户端
+
+## 迁移时通常只要改 3 件事
+
+### 1. Base URL
+
+把原本的 OpenAI 地址替换成：
+
+`https://api.jingxing.uk/v1`
+
+### 2. API Key
+
+把原本的 OpenAI key 换成井陉令牌。
+
+### 3. model
+
+确保你填写的是当前令牌和当前分组实际可见的模型名，而不是想当然地照抄别处配置。
+
+## 哪些 OpenAI 兼容接口已经明确存在
+
+根据当前仓库同步的 `relay.json`，井陉现在已经明确存在这些 OpenAI 兼容路径：
+
+- `GET /v1/models`
+- `POST /v1/chat/completions`
+- `POST /v1/responses`
+- `POST /v1/responses/compact`
+- `POST /v1/embeddings`
+- `POST /v1/images/generations`
+- `POST /v1/images/edits`
+- `POST /v1/videos`
+- `GET /v1/videos/{task_id}`
+
+这意味着它不只是“能聊”，而是已经覆盖了：
+
+- 聊天
+- Responses
+- Embeddings
+- 图片
+- 视频
+
+## 兼容最顺的客户端和场景
+
+通常最顺的几类是：
+
+- `curl`
+- OpenAI 官方 SDK
+- 支持自定义 OpenAI endpoint 的客户端
+  例如 Cursor、Cherry Studio、Lobe Chat、Open WebUI、NextChat
+
+## 为什么说“兼容”不等于“完全一样”
+
+因为你迁移的是接口协议，不是 OpenAI 官方整套产品行为。
+
+最常见的差异包括：
+
+- 可用模型名不完全一样
+- 某些模型只在特定分组里可见
+- 客户端可能自带自己的默认参数
+- OpenAI 自家产品表层不一定把第三方 endpoint 当一等支持
+
+所以更准确的理解是：
+
+- 对 SDK 和兼容客户端来说，井陉通常很好接
+- 对 OpenAI 自家闭环产品来说，需要更谨慎看待
+
+## 最小兼容验证方式
+
+先跑：
+
+```bash
+curl https://api.jingxing.uk/v1/models \
+  -H "Authorization: Bearer <YOUR_TOKEN>"
+```
+
+再跑：
+
+```bash
+curl https://api.jingxing.uk/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <YOUR_TOKEN>" \
+  -d '{
+    "model": "gpt-5.4",
+    "messages": [{"role": "user", "content": "你好"}]
+  }'
+```
+
+如果这两步都通，说明你的 OpenAI 兼容主链路基本没问题。
+
+## 最常见的兼容误区
+
+### 误区 1：只要是 OpenAI 客户端就一定零差异
+
+不对。  
+“支持 OpenAI-compatible” 的客户端通常最顺；  
+“OpenAI 自家原生产品表层”则不一定天然就是同一回事。
+
+### 误区 2：模型名照抄就行
+
+不一定。  
+是否能用，还取决于：
+
+- 分组
+- 令牌权限
+- 当前客户端实际选择
+
+### 误区 3：接口兼容就代表价格和权限逻辑也一样
+
+也不对。  
+井陉的价格、分组和权限仍然是井陉自己的运营规则。
+
+## 推荐动作
+
+如果你手里已经有现成 OpenAI 项目，迁移顺序最稳的是：
+
+1. 先改 Base URL
+2. 再换 API Key
+3. 再确认 model
+4. 先跑 `GET /models`
+5. 再跑一条最小请求
+
+## 继续阅读
+
+- 想先看 API 的整体结构：前往[API 概览](/docs/api-reference/overview)
+- 想看鉴权怎么排：前往[鉴权方式](/docs/api-reference/authentication)

@@ -12,6 +12,8 @@ const sidebars: SidebarsConfig = {
       items: [
         'getting-started/quickstart',
         'getting-started/api-quickstart',
+        'getting-started/overview',
+        'getting-started/core-concepts',
       ],
     },
     {
@@ -23,6 +25,8 @@ const sidebars: SidebarsConfig = {
         'platform/group-price-differences',
         'platform/create-token-by-group',
         'api-reference/authentication',
+        'api-reference/openai-compatibility',
+        'api-reference/overview',
         'platform/token-management',
         'platform/quotas-and-billing',
         'platform/errors-and-retries',
