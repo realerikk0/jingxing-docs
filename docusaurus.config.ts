@@ -5,7 +5,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
-  title: 'Jingxing Docs',
+  title: '井陉doc',
   tagline: '井陉 API 网关与 AI 工作台文档',
   favicon: 'img/favicon.ico',
 
@@ -58,9 +58,9 @@ const config: Config = {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: 'Jingxing Docs',
+      title: '井陉doc',
       logo: {
-        alt: 'Jingxing Docs Logo',
+        alt: '井陉doc Logo',
         src: 'img/logo.png',
       },
       items: [
@@ -113,7 +113,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} Jingxing Docs. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} 井陉doc. Built with Docusaurus.`,
     },
     prism: {
       theme: prismThemes.github,

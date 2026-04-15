@@ -1,39 +1,45 @@
 ---
 title: "API 快速开始"
-description: "用 OpenAI 兼容方式调用井陉 API"
+description: "通过 OpenAI 兼容方式完成井陉 API 的首次接入"
 sidebar_position: 3
 ---
 
 # API 快速开始
 
-井陉优先提供 OpenAI 兼容调用方式，目标是让你在尽量少改动客户端代码的前提下完成接入。
+井陉优先提供 OpenAI 兼容接口，便于在尽量少改动现有代码和客户端配置的前提下完成接入。本文用于完成首次连通性验证，并建立最基本的调用链路。
 
-## Base URL
+## 接入信息
+
+### Base URL
 
 `https://api.jingxing.uk/v1`
 
-## 鉴权方式
+### 鉴权方式
 
-所有公共请求都使用 Bearer Token：
+所有公共接口均使用 Bearer Token：
 
 ```http
 Authorization: Bearer <YOUR_TOKEN>
 ```
 
-## 最小联通性检查：获取模型列表
+## 第一步：获取模型列表
+
+建议首先执行模型列表查询，以确认令牌、网络和接口地址均已生效。
 
 ```bash
 curl https://api.jingxing.uk/v1/models \
   -H "Authorization: Bearer <YOUR_TOKEN>"
 ```
 
-这个请求适合做三类用途：
+该请求主要用于确认以下内容：
 
-- 检查令牌是否有效
-- 检查当前令牌大致可见的模型范围
-- 检查客户端网络和域名是否可达
+- 令牌是否有效
+- 当前令牌可见的模型范围
+- 当前环境是否可以访问井陉 API
 
-## 最小可用示例：聊天补全
+## 第二步：发送最小聊天请求
+
+完成模型列表验证后，建议使用最小聊天请求确认主链路已建立。
 
 ```bash
 curl https://api.jingxing.uk/v1/chat/completions \
@@ -42,72 +48,71 @@ curl https://api.jingxing.uk/v1/chat/completions \
   -d '{
     "model": "gpt-5.4",
     "messages": [
-      {"role": "user", "content": "你好，介绍一下井陉"}
+      {"role": "user", "content": "请简要介绍井陉。"}
     ]
   }'
 ```
 
 ## 请求要点
 
-### 模型名
+### 模型名称
 
-请求中的 `model` 必须填写当前令牌与当前分组实际可用的模型名。  
-同一平台内是否可见某个模型，取决于以下几件事：
+`model` 字段必须填写当前分组和当前令牌实际可用的模型名称。模型是否可见通常取决于以下因素：
 
 - 当前分组策略
 - 当前令牌的模型限制
-- 后台是否已启用对应上游渠道
+- 后台是否启用了对应上游渠道
 
-### OpenAI 兼容范围
+### OpenAI 兼容接入范围
 
-对于大多数现有集成，迁移时只需要替换三项：
+对于大多数现有集成，迁移至井陉时通常只需调整以下三项：
 
-- `Base URL`
-- `API Key`
-- `model`
-
-如果你的客户端支持自定义 OpenAI 兼容地址，井陉通常可以直接接入。
+- Base URL
+- API Key
+- model
 
 ### 请求头
 
-最常见的两类错误都来自请求头：
+首次接入时，最常见的问题集中在请求头配置不完整。建议确认：
 
-- 少了 `Authorization`
-- 少了 `Content-Type: application/json`
+- 已携带 `Authorization: Bearer <YOUR_TOKEN>`
+- 已携带 `Content-Type: application/json`
 
-## 推荐接入顺序
+## 建议接入顺序
 
-1. 先跑 `GET /models`
-2. 再跑 `POST /chat/completions`
-3. 再接入你自己的 SDK、服务端或客户端
-4. 最后再做流式输出、工具调用、图片或其他扩展能力
+建议采用以下顺序完成接入：
 
-## 常见错误
+1. 先执行 `GET /v1/models`
+2. 再执行 `POST /v1/chat/completions`
+3. 再接入 SDK、服务端或客户端
+4. 最后扩展流式输出、工具调用、图片或其他能力
+
+## 常见问题
 
 ### 401 未认证
 
-通常是令牌问题、请求头问题，或者把控制台 token 和 API token 搞混了。
+通常与令牌失效、请求头缺失或使用了错误的令牌类型有关。
 
 ### 400 参数错误
 
-优先检查：
+建议优先检查：
 
-- `model` 是否存在
-- `messages` 是否是正确数组
-- JSON 是否合法
+- `model` 是否正确
+- `messages` 是否为合法数组
+- JSON 结构是否完整
 
 ### 404 或无法连通
 
-最常见的问题是把地址写成了：
-
-- `https://api.jingxing.uk`
-
-而不是：
+常见原因是接口地址未包含 `/v1` 前缀。应使用：
 
 - `https://api.jingxing.uk/v1`
 
-## 下一步
+而非：
 
-- 想理解为什么同一个模型在不同分组表现不同：看[模型分组](/docs/platform/model-groups)
-- 想接客户端：看[开发工具](/docs/integrations/claude-code)
-- 想查公共接口和控制台接口：看[API 概览](/docs/api-reference/overview)
+- `https://api.jingxing.uk`
+
+## 继续阅读
+
+- [分组详细表格](/docs/platform/group-table)
+- [开发工具](/docs/integrations/cursor)
+- [API 概览](/docs/api-reference/overview)
