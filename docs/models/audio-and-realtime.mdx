@@ -1,20 +1,143 @@
 ---
 title: "音频与 Realtime"
-description: "说明语音、TTS、STT 与实时连接能力"
+description: "先分清 TTS、转写、翻译和 Realtime，各自怎么接"
+sidebar_position: 1
 ---
 
 # 音频与 Realtime
 
-## 建议覆盖
+这一页解决的是：
 
-- 文本转语音
-- 语音转文本
-- Realtime 会话
-- 流式传输
-- 常见超时与连接中断问题
+**我现在要做语音或实时连接，到底该走哪个接口，第一次怎么验证最稳。**
 
-## 推荐补充
+当前项目里已经明确暴露了这些能力：
 
-- WebSocket 或 Realtime 接入示例
-- 客户端兼容性说明
-- 费用与时长限制
+- `POST /v1/audio/speech`
+- `POST /v1/audio/transcriptions`
+- `POST /v1/audio/translations`
+- `GET /v1/realtime`
+
+## 先分清 4 条路
+
+### 文本转语音
+
+把文字直接生成音频文件。  
+走的是 `POST /v1/audio/speech`。
+
+### 音频转录
+
+把一段音频转成原语言文本。  
+走的是 `POST /v1/audio/transcriptions`。
+
+### 音频翻译
+
+把音频翻译成英文文本。  
+走的是 `POST /v1/audio/translations`。
+
+### Realtime
+
+通过 WebSocket 做实时对话或实时语音链路。  
+走的是 `GET /v1/realtime`，但连接时要用 `wss://`。
+
+## 最小请求：文本转语音
+
+```bash
+curl https://api.jingxing.uk/v1/audio/speech \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <YOUR_TOKEN>" \
+  -d '{
+    "model": "tts-1",
+    "input": "欢迎使用井陉。",
+    "voice": "alloy"
+  }' \
+  --output speech.mp3
+```
+
+这条成功时通常直接返回音频文件流，不是 JSON。
+
+## 最小请求：音频转录
+
+```bash
+curl https://api.jingxing.uk/v1/audio/transcriptions \
+  -H "Authorization: Bearer <YOUR_TOKEN>" \
+  -F "file=@/absolute/path/to/sample.mp3" \
+  -F "model=whisper-1" \
+  -F "response_format=json"
+```
+
+第一次调试时，建议就用：
+
+- 短音频
+- 清晰人声
+- `response_format=json`
+
+这样最容易判断接口是不是正常。
+
+## 最小请求：音频翻译
+
+```bash
+curl https://api.jingxing.uk/v1/audio/translations \
+  -H "Authorization: Bearer <YOUR_TOKEN>" \
+  -F "file=@/absolute/path/to/sample.mp3" \
+  -F "model=whisper-1"
+```
+
+如果你只是想做普通听写，不要误走翻译接口。  
+它更适合“把音频翻成英文文本”。
+
+## Realtime 怎么理解
+
+`/v1/realtime` 不是普通 HTTP 拉 JSON。  
+它是一个 WebSocket 端点，OpenAPI 里也明确写了，连接示例类似：
+
+```text
+wss://api.jingxing.uk/v1/realtime?model=gpt-4o-realtime-preview
+```
+
+如果你现在只是想先验证实时链路，不要先上整套前端语音房间。  
+先做一件事：
+
+- 确认你的客户端真的在用 WebSocket
+- 确认 Bearer Token 和 query 参数里的 `model` 都带了
+
+## 最常见的 6 个问题
+
+### 1. 把 TTS 当成 JSON 接口
+
+`/v1/audio/speech` 成功时会返回音频流，不是常规 JSON。
+
+### 2. 转录时没用 `multipart/form-data`
+
+上传音频文件这类接口最容易在这里翻车。
+
+### 3. 文件太大或太长，第一次就难排错
+
+第一次验证链路时，短音频永远更稳。
+
+### 4. 普通转写和翻译搞反了
+
+如果你只想保留原语言内容，优先走 `transcriptions`。
+
+### 5. Realtime 用成了普通 HTTPS 请求
+
+这条必须按 WebSocket 思路来接。
+
+### 6. 聊天模型能用，但音频模型没开放
+
+这类问题和图片、视频一样，本质还是分组权限问题。
+
+## 推荐动作
+
+如果你现在刚开始接音频：
+
+1. 先做一条 TTS
+2. 再做一条短音频转录
+3. 最后再碰 Realtime
+
+因为 Realtime 一旦出问题，排查面会比普通 HTTP 大很多。
+
+## 下一步
+
+- 你在做普通聊天：看[聊天](/docs/models/chat)
+- 你还在排鉴权和限流：看[HTTP 状态码总览](/docs/faq/http-status-codes)
+- 你想看所有 API 路径：看[API 概览](/docs/api-reference/overview)

@@ -65,6 +65,22 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
+      label: '聊天与向量',
+      items: [
+        'models/chat',
+        'models/completions',
+        'models/embeddings',
+      ],
+    },
+    {
+      type: 'category',
+      label: '音频与实时',
+      items: [
+        'models/audio-and-realtime',
+      ],
+    },
+    {
+      type: 'category',
       label: 'FAQs',
       items: [
         'faq/general',

@@ -1,0 +1,105 @@
+---
+title: "Completions"
+description: "给还在用老式 prompt 补全接口的客户端一个稳定迁移入口"
+sidebar_position: 2
+---
+
+# Completions
+
+这一页解决的是：
+
+**我的工具或历史代码还在走 `/v1/completions`，现在在井陉里要怎么最稳地继续用。**
+
+当前项目里已经明确暴露了：
+
+- `POST /v1/completions`
+
+不过如果你是新接入，通常还是更建议优先走：
+
+- [聊天](/docs/models/chat)
+
+因为大多数现代客户端、SDK 和工作流都更偏向 `chat/completions`。
+
+## 什么时候还会用到这条
+
+- 旧版 SDK 还没迁走
+- 某些历史脚本只有 `prompt`，没有 `messages`
+- 你在接一些老客户端或老模板
+
+## 最小请求
+
+```bash
+curl https://api.jingxing.uk/v1/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <YOUR_TOKEN>" \
+  -d '{
+    "model": "gpt-3.5-turbo-instruct",
+    "prompt": "请用一句话介绍井陉：",
+    "max_tokens": 128
+  }'
+```
+
+这条接口的核心区别很简单：
+
+- `completions` 用 `prompt`
+- `chat/completions` 用 `messages`
+
+## 哪些字段先够用
+
+### `model`
+
+先确认这个模型在当前分组是否真的开放。
+
+### `prompt`
+
+第一次验证时，直接用一小段文本提示就够了。
+
+### `max_tokens`
+
+建议显式给一个保守值，避免第一次就因为输出长度带来额外噪音。
+
+### `stream`
+
+如果你只是验证链路，先别开流式。
+
+## 最常见的 4 个问题
+
+### 1. 用了只支持 chat 的模型
+
+不是所有聊天模型都适合直接塞进 `completions`。
+
+### 2. 旧代码里 prompt 太长
+
+历史脚本最常见的问题就是上下文越来越长，最后自己把排错复杂度拉高了。
+
+### 3. 把 `prompt` 和 `messages` 混着用
+
+迁移阶段很容易发生这种半新半旧的请求结构。
+
+### 4. 明明该迁到 chat，还硬留在 completions
+
+如果你已经在做新功能，这条接口通常不应该是首选。
+
+## 什么时候该迁走
+
+如果你已经需要这些能力，就该考虑迁到 `chat/completions`：
+
+- 多轮对话
+- 工具调用
+- 更现代的客户端兼容
+- 更清晰的消息结构
+
+## 推荐动作
+
+如果你当前只是为了兼容老系统：
+
+1. 先用 `completions` 把旧链路跑通
+2. 再安排时间迁到 `chat/completions`
+
+这样最稳，不会一边保活旧系统，一边把新结构改乱。
+
+## 下一步
+
+- 你准备升级到主流聊天接口：看[聊天](/docs/models/chat)
+- 你想做检索和 RAG：看[Embeddings](/docs/models/embeddings)
+- 你还在排 400 / 404：看[HTTP 状态码总览](/docs/faq/http-status-codes)
