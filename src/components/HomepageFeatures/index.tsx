@@ -11,32 +11,29 @@ type FeatureItem = {
 
 const FeatureList: FeatureItem[] = [
   {
-    title: 'Easy to Use',
+    title: '快速开始',
     Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
     description: (
       <>
-        Docusaurus was designed from the ground up to be easily installed and
-        used to get your website up and running quickly.
+        从控制台登录、令牌创建、第一条 API 请求开始，先把井陉最短路径跑通。
       </>
     ),
   },
   {
-    title: 'Focus on What Matters',
+    title: '平台与分组',
     Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
     description: (
       <>
-        Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
-        ahead and move your docs into the <code>docs</code> directory.
+        集中整理模型分组、价格、额度、错误处理与安全策略，方便后续持续运营。
       </>
     ),
   },
   {
-    title: 'Powered by React',
+    title: '开发工具接入',
     Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
     description: (
       <>
-        Extend or customize your website layout by reusing React. Docusaurus can
-        be extended while reusing the same header and footer.
+        把 Claude Code、Cursor、Cherry Studio、Lobe Chat 等高频客户端接入方式统一写清楚。
       </>
     ),
   },

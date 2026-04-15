@@ -61,7 +61,7 @@ const config: Config = {
       title: 'Jingxing Docs',
       logo: {
         alt: 'Jingxing Docs Logo',
-        src: 'img/logo.svg',
+        src: 'img/logo.png',
       },
       items: [
         {
@@ -69,6 +69,11 @@ const config: Config = {
           sidebarId: 'tutorialSidebar',
           position: 'left',
           label: '文档',
+        },
+        {
+          to: '/docs/api-reference/overview',
+          label: 'API 参考',
+          position: 'left',
         },
         {
           href: 'https://github.com/realerikk0/jingxing-docs',

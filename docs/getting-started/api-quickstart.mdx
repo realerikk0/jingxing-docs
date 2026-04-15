@@ -1,0 +1,41 @@
+---
+title: "API 快速开始"
+description: "用 OpenAI 兼容方式调用井陉 API"
+---
+
+# API 快速开始
+
+井陉优先提供 OpenAI 兼容调用方式，便于现有 SDK 与客户端平滑切换。
+
+## Base URL
+
+`https://api.jingxing.uk/v1`
+
+## Authorization
+
+使用 Bearer Token：
+
+```http
+Authorization: Bearer <YOUR_TOKEN>
+```
+
+## 最小示例
+
+```bash
+curl https://api.jingxing.uk/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <YOUR_TOKEN>" \
+  -d '{
+    "model": "gpt-5.4",
+    "messages": [
+      {"role": "user", "content": "你好，介绍一下井陉"}
+    ]
+  }'
+```
+
+## 初版需要补充的内容
+
+- 支持模型的完整列表
+- 每个分组允许的模型范围
+- 价格与额度换算方式
+- 常见错误响应与排查步骤
