@@ -1,13 +1,169 @@
 ---
 title: "Open WebUI"
 description: "如何把 Open WebUI 接到井陉"
+sidebar_position: 6
 ---
 
 # Open WebUI
 
-## 这页建议说明
+Open WebUI 是井陉很值得支持的一类前端，因为它官方就支持 **OpenAI-compatible API** 接入，而且能把聊天、任务模型、RAG、图像、音频等配置拆开。  
+如果你的目标是“自部署一个统一 AI 前端，并把底层能力都挂到井陉上”，Open WebUI 会比很多轻量客户端更完整。
 
-- 连接方式
-- 多模型展示方式
-- 令牌管理建议
-- 常见连通性问题
+## 先说结论
+
+- 想要最清晰的 OpenAI 兼容接入路径：Open WebUI 很合适
+- 想做团队自部署前端：它比轻量桌面客户端更适合
+- 想少踩坑：先只接聊天主链路，再逐步扩图像、Embedding、音频
+- 想减少混乱：给 Open WebUI 单独发令牌
+
+## 接入前准备
+
+先准备好这三项：
+
+- Base URL：`https://api.jingxing.uk/v1`
+- API Key：一个专门给 Open WebUI 使用的井陉令牌
+- 模型名：至少一个已经验证可用的模型
+
+## Open WebUI 为什么适合井陉
+
+根据 Open WebUI 官方文档，它原生支持连接 OpenAI-compatible API，而且既可以通过环境变量配置，也可以在 Admin Panel 里配置。
+
+这对井陉非常友好，因为：
+
+- 井陉本身优先提供 OpenAI 兼容接口
+- Open WebUI 的 provider 配置足够明确
+- 后续可以继续扩到 RAG、图像、音频能力
+
+## 推荐接入顺序
+
+### 第 1 步：先只接聊天主链路
+
+先别一上来就把 RAG、图像、音频、TTS、STT 全开。  
+第一轮最稳的方式是只配置核心聊天连接：
+
+```bash
+OPENAI_API_BASE_URL=https://api.jingxing.uk/v1
+OPENAI_API_KEY=<YOUR_JINGXING_TOKEN>
+```
+
+如果你是通过 Admin Panel 配置，也同样先只填：
+
+- Base URL
+- API Key
+
+### 第 2 步：确认模型已经出现
+
+启动或重启后，先检查：
+
+- 模型列表里是否出现你期望的模型
+- 当前令牌是否真的有权限看到这些模型
+
+### 第 3 步：只验证一个模型
+
+第一轮只选一个最明确可用的模型，先发一条最简单的对话。
+
+例如：
+
+- “用一句话介绍井陉”
+- “总结下面这段需求”
+
+## 如果要继续扩展更多能力
+
+Open WebUI 的强项之一，是它可以把不同能力拆开单独配置。
+
+### RAG / Embedding
+
+如果你后面要接知识库或检索向量能力，可以再单独配置 RAG 的 OpenAI-compatible endpoint 和 key。  
+但建议在聊天主链路稳定之后再开。
+
+### 图片能力
+
+如果你的井陉分组和模型已经开放图像生成能力，可以再单独补：
+
+- 图像生成 engine
+- 图像生成 endpoint
+- 图像生成 key
+
+### 音频能力
+
+TTS / STT 同理。  
+先确认井陉当前是否真的开放相应模型，再决定是否在 Open WebUI 中启用。
+
+## 为什么建议给 Open WebUI 单独发令牌
+
+因为它往往不是单一用途客户端，而是一个持续运行的 Web 前端。  
+它可能同时承载：
+
+- 聊天
+- 任务模型
+- RAG
+- 图像
+- 音频
+
+如果把它和其他客户端共用令牌，你后面很难判断到底是哪一块在消耗额度。
+
+## 最短验证路径
+
+1. 命令行先跑通 `GET /models`
+2. 只配置 `OPENAI_API_BASE_URL` 和 `OPENAI_API_KEY`
+3. 重启 Open WebUI
+4. 在界面里选一个模型
+5. 发起最简单的一条聊天请求
+
+如果这一步都还没稳定，不要继续往 RAG、图像或音频上叠复杂度。
+
+## 常见问题
+
+### 模型没显示出来
+
+优先检查：
+
+- 当前 token 是否真的有模型权限
+- Base URL 是否写成了 `https://api.jingxing.uk/v1`
+- Open WebUI 是否还在使用旧配置
+
+### 聊天能用，但图像或音频不行
+
+这通常不代表聊天接法有问题，而是说明：
+
+- 当前分组没开放对应能力
+- 当前模型本身不支持
+- 你还没单独配置该能力的 engine / endpoint / key
+
+### 一直 401 或 403
+
+优先检查：
+
+- API Key 是否有效
+- token 是否停用或过期
+- 当前分组是否开放目标模型
+- 来源限制是否误伤
+
+### 多模型很多，但体验很乱
+
+这通常不是“模型越多越好”，而是你把太多用途塞进同一个前端了。  
+更推荐先控制好：
+
+- 默认模型
+- 分组
+- 令牌边界
+
+## 推荐实践
+
+- 先聊天，后扩展能力
+- 给 Open WebUI 单独发令牌
+- 少量模型起步
+- 先环境变量跑通，再考虑高级 UI 配置
+- 出问题先验证主链路，不要同时排查 5 种能力
+
+## 官方参考
+
+- [Open WebUI: Connect a Provider](https://docs.openwebui.com/getting-started/quick-start/connect-a-provider/)
+- [Open WebUI: Starting with OpenAI-Compatible APIs](https://docs.openwebui.com/getting-started/quick-start/connect-a-provider/starting-with-openai-compatible)
+- [Open WebUI: Direct Connections](https://docs.openwebui.com/features/chat-conversations/direct-connections)
+
+## 下一步
+
+- 想接更轻量的客户端：看[Cherry Studio](/docs/integrations/cherry-studio)
+- 想接更偏聊天产品形态的前端：看[Lobe Chat](/docs/integrations/lobe-chat)
+- 想排查连接和重试问题：看[错误与重试](/docs/platform/errors-and-retries)
