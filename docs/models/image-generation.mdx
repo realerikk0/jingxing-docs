@@ -1,0 +1,168 @@
+---
+title: "文生图"
+description: "用井陉的 /v1/images/generations 先跑通第一张图"
+sidebar_position: 1
+---
+
+# 文生图
+
+这一页解决的是一个很直接的问题：
+
+**我已经有令牌了，现在想先用井陉生成第一张图片，最稳的请求怎么发。**
+
+当前项目里已经明确暴露了 `POST /v1/images/generations`，OpenAPI 示例使用的是 `qwen-image-plus`。  
+你实际能不能用这个模型，仍然要以**当前分组是否开放**为准。
+
+## 什么时候先看这页
+
+- 你要先验证图片能力有没有打通
+- 你准备接自己的后端服务
+- 你在客户端里遇到图片生成报错，想先排除是不是接口本身的问题
+
+如果你还没确认分组和额度，先看：
+
+- [分组详细表格](/docs/platform/group-table)
+- [如何新建指定分组的令牌](/docs/platform/create-token-by-group)
+
+## 先准备 4 件事
+
+- 一个可用 token
+- 一个当前分组能看到的图片模型
+- 正确的 Base URL：`https://api.jingxing.uk/v1`
+- 一段足够具体的提示词
+
+## 最小请求
+
+```bash
+curl https://api.jingxing.uk/v1/images/generations \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <YOUR_TOKEN>" \
+  -d '{
+    "model": "qwen-image-plus",
+    "input": {
+      "messages": [
+        {
+          "role": "user",
+          "content": [
+            {
+              "text": "一只戴着红围巾的白猫坐在木窗边，清晨阳光打进来，电影感摄影，细节丰富"
+            }
+          ]
+        }
+      ]
+    },
+    "parameters": {
+      "size": "1328*1328",
+      "prompt_extend": true,
+      "watermark": false,
+      "negative_prompt": ""
+    }
+  }'
+```
+
+## 返回结果你该怎么看
+
+成功时，一般会返回这种结构：
+
+```json
+{
+  "created": 1764347090,
+  "data": [
+    {
+      "url": "https://...",
+      "revised_prompt": "..."
+    }
+  ]
+}
+```
+
+你先看两件事：
+
+- `data` 里有没有图片结果
+- `revised_prompt` 有没有把你的原始提示词改得太离谱
+
+如果有图就说明主链路已经通了，后面再慢慢调风格和细节。
+
+## 这几个参数最常用
+
+### `model`
+
+决定你到底走哪个图片模型。  
+别凭印象填，先用 `GET /v1/models` 或控制台确认当前 token 能看到什么。
+
+### `input.messages`
+
+这是这条接口最容易让人写错的地方。  
+它不是单纯的 `prompt` 字段，而是一个消息数组。
+
+你最稳的写法就是：
+
+- `role` 固定写 `user`
+- `content` 里放一个 `text`
+
+### `parameters.size`
+
+控制输出尺寸。  
+如果你只是验证链路，先用默认常见尺寸，不要一开始就追极端分辨率。
+
+### `parameters.prompt_extend`
+
+是否允许系统扩展提示词。  
+如果你想先看“更稳的出图结果”，通常可以先开；如果你在做严格提示词对比，再考虑关掉。
+
+### `parameters.watermark`
+
+是否加水印。  
+如果你是做内部测试，通常会先关掉。
+
+## 最稳的排查顺序
+
+如果图片没出成功，不要一口气同时改 10 个字段。  
+按这个顺序查最省时间：
+
+1. 先确认 token 可用
+2. 先确认模型在当前分组里可见
+3. 再把提示词缩短
+4. 再把 `size` 改回常规值
+5. 最后再看是不是上游波动
+
+## 最常见的 5 个问题
+
+### 1. 模型名根本不可见
+
+这类问题最容易被误以为“接口坏了”。  
+实际上更常见的是：当前分组没开这个模型。
+
+### 2. 把 OpenAI 老格式直接贴过来
+
+这条接口当前走的是 `input.messages` 结构。  
+如果你直接传一个顶层 `prompt`，通常就会失败。
+
+### 3. 提示词太空
+
+“画一张漂亮图片”这类提示词即使能出图，也很难稳定。  
+先把主体、环境、风格、镜头感写清楚。
+
+### 4. 一上来就用大尺寸
+
+如果你只是验证通不通，别先追求最大图。  
+先通，再调。
+
+### 5. 客户端报错，但 curl 其实能通
+
+这时优先怀疑客户端请求格式，不要先怀疑平台。
+
+## 推荐动作
+
+如果你现在就要跑第一张图，按这个顺序最稳：
+
+1. 先跑 `GET /v1/models`
+2. 确认一个图片模型
+3. 直接用上面的最小请求
+4. 成功后再开始调尺寸和提示词
+
+## 下一步
+
+- 想继续做带参考图的修改：看[编辑图片](/docs/models/image-editing)
+- 想排查 400 / 401 / 429：看[HTTP 状态码总览](/docs/faq/http-status-codes)
+- 想看整套 API 路径：看[API 概览](/docs/api-reference/overview)

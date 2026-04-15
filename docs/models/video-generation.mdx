@@ -1,0 +1,141 @@
+---
+title: "OpenAI 兼容视频生成"
+description: "用 /v1/videos 提交视频任务，并理解它和 Kling 路径的区别"
+sidebar_position: 1
+---
+
+# OpenAI 兼容视频生成
+
+这一页解决的是：
+
+**我想先用 OpenAI 风格的视频接口提一个任务，后面再查进度或取回视频内容。**
+
+当前项目里已经明确暴露了：
+
+- `POST /v1/videos`
+- `GET /v1/videos/{task_id}`
+- `GET /v1/videos/{task_id}/content`
+
+这套更适合：
+
+- 你自己写后端服务
+- 你希望路径风格更接近 OpenAI
+- 你要把“提交任务”和“轮询状态”拆开做
+
+## 先理解它的工作方式
+
+这条链路不是“发完马上回整段视频文件”，而是：
+
+1. 先提交生成任务
+2. 拿到一个 `id`
+3. 轮询查询状态
+4. 任务完成后再取视频内容
+
+如果你把它当成同步接口来用，体验通常会很差。
+
+## 最小请求
+
+`/v1/videos` 当前用的是 `multipart/form-data`。
+
+```bash
+curl https://api.jingxing.uk/v1/videos \
+  -H "Authorization: Bearer <YOUR_TOKEN>" \
+  -F "model=sora-2" \
+  -F "prompt=一只柯基在海边追逐浪花，暖色日落，镜头平稳推进" \
+  -F "seconds=8"
+```
+
+如果你要做“带参考图的视频生成”，可以再加：
+
+```bash
+-F "input_reference=@/absolute/path/to/reference.png"
+```
+
+## 成功后会先返回什么
+
+成功创建任务后，一般会先拿到类似这样的结构：
+
+```json
+{
+  "id": "sora-2-123456",
+  "object": "video",
+  "model": "sora-2",
+  "status": "queued",
+  "progress": 0,
+  "created_at": 1764347090922,
+  "seconds": "8"
+}
+```
+
+你现在最该保存的是：
+
+- `id`
+- `status`
+
+后面查询和取文件都要靠它。
+
+## 哪些字段最值得先用
+
+### `model`
+
+别先猜，先确认当前分组到底开放了哪个视频模型。
+
+### `prompt`
+
+第一次验证时，提示词尽量短、明确、动作单一。  
+越像“一个镜头一个动作”，越容易先跑通。
+
+### `seconds`
+
+第一次测试建议用短时长。  
+先确认能跑起来，再去追长视频。
+
+### `input_reference`
+
+这是可选项。  
+只有你明确要参考图驱动时再加，不要在第一次排错时把问题复杂化。
+
+## 什么时候更适合用这条，而不是 Kling 路径
+
+- 你已经按 OpenAI 风格封装了调用层
+- 你希望统一走 `/v1` 体系
+- 你后面还要配合 `/v1/videos/{task_id}` 和 `/content`
+
+如果你现在就是想直接跑一个 Kling 文生视频任务，那你更适合看：
+
+- [Kling 文生视频](/docs/models/kling-text-to-video)
+- [Kling 图生视频](/docs/models/kling-image-to-video)
+
+## 最常见的 4 个问题
+
+### 1. 当成同步下载接口来用
+
+这条接口先返回的是任务状态，不是最终视频文件。
+
+### 2. 漏了 `seconds`
+
+很多视频接口问题最后都会退回到“请求字段不完整”。
+
+### 3. 令牌可聊天，但视频模型没开放
+
+这类问题很常见。  
+不要因为 `chat/completions` 能用，就默认视频也能用。
+
+### 4. 一开始就塞参考图
+
+第一次验证链路时，先纯文本生成更稳。
+
+## 推荐动作
+
+最稳的走法：
+
+1. 先发纯文本短视频请求
+2. 记下 `id`
+3. 立刻去查一次状态
+4. 等任务完成后再拉取内容
+
+## 下一步
+
+- 想查任务进度：看[视频任务状态查询](/docs/models/video-task-status)
+- 想直接用 Kling 风格接口：看[Kling 文生视频](/docs/models/kling-text-to-video)
+- 想看权限与错误：看[HTTP 状态码总览](/docs/faq/http-status-codes)

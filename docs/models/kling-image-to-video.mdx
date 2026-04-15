@@ -1,0 +1,117 @@
+---
+title: "Kling 图生视频"
+description: "用 /kling/v1/videos/image2video 从参考图生成视频"
+sidebar_position: 4
+---
+
+# Kling 图生视频
+
+这一页解决的是：
+
+**我已经有一张图了，想让它动起来，应该怎么走 Kling 图生视频接口。**
+
+当前项目里已经明确暴露了：
+
+- `POST /kling/v1/videos/image2video`
+- `GET /kling/v1/videos/image2video/{task_id}`
+
+## 最小请求
+
+```bash
+curl https://api.jingxing.uk/kling/v1/videos/image2video \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <YOUR_TOKEN>" \
+  -d '{
+    "model": "kling-v1",
+    "prompt": "人物缓慢转身并向前走一步，衣角轻微摆动，镜头稳定",
+    "image": "https://example.com/reference-image.jpg",
+    "duration": 5,
+    "width": 1280,
+    "height": 720
+  }'
+```
+
+OpenAPI 里已经明确写了，`image` 支持：
+
+- 图片 URL
+- Base64 编码图片
+
+第一次调试时，建议先用稳定公网 URL。
+
+## 成功后怎么查任务
+
+```bash
+curl https://api.jingxing.uk/kling/v1/videos/image2video/<TASK_ID> \
+  -H "Authorization: Bearer <YOUR_TOKEN>"
+```
+
+如果状态完成，你通常会在返回里看到：
+
+- `url`
+- `format`
+
+## 最适合先做的 3 类任务
+
+### 轻动作驱动
+
+例如：
+
+- 转头
+- 迈步
+- 抬手
+
+### 环境动态增强
+
+例如：
+
+- 风吹头发
+- 灯光闪动
+- 雨雪飘落
+
+### 镜头缓动
+
+例如：
+
+- 缓慢推进
+- 稍微拉远
+- 轻微环绕
+
+第一次测试时，优先做这种“动作少、变量少”的任务，最容易判断链路是不是正常。
+
+## 最常见的 5 个问题
+
+### 1. 参考图本身太复杂
+
+如果画面里主体太多、构图太乱，生成结果通常会更不稳。
+
+### 2. 指令写成了“重做一支新片”
+
+图生视频更适合“让现有画面动起来”，而不是完全重拍一段新故事。
+
+### 3. 图片地址不稳定
+
+如果图片链接过期、受限或返回慢，整条任务链路都会跟着不稳。
+
+### 4. 一开始就要求长视频
+
+先把 5 秒左右的动作跑通，再考虑更长、更复杂的版本。
+
+### 5. 把图生视频和文生视频的查询路径混了
+
+提交和查询都要走 `image2video` 这条线，不要混到 `text2video`。
+
+## 推荐动作
+
+最稳的方式：
+
+1. 先用单主体参考图
+2. 只写一个清晰动作
+3. 先请求短时长
+4. 拿到 `task_id` 后查状态
+5. 成功后再逐步加复杂镜头
+
+## 下一步
+
+- 想先跑不带参考图的视频：看[Kling 文生视频](/docs/models/kling-text-to-video)
+- 想统一看状态与结果：看[视频任务状态查询](/docs/models/video-task-status)
+- 想看模型与分组限制：看[分组详细表格](/docs/platform/group-table)

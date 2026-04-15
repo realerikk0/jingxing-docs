@@ -1,0 +1,114 @@
+---
+title: "Kling 文生视频"
+description: "直接用 /kling/v1/videos/text2video 提交文生视频任务"
+sidebar_position: 3
+---
+
+# Kling 文生视频
+
+这一页解决的是：
+
+**我就是想直接走 Kling 风格接口，用一段提示词生成视频，不想先绕到别的封装层。**
+
+当前项目里已经明确暴露了：
+
+- `POST /kling/v1/videos/text2video`
+- `GET /kling/v1/videos/text2video/{task_id}`
+
+## 最小请求
+
+```bash
+curl https://api.jingxing.uk/kling/v1/videos/text2video \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <YOUR_TOKEN>" \
+  -d '{
+    "model": "kling-v1",
+    "prompt": "宇航员站起身向前走，尘土轻轻扬起，镜头缓慢推进",
+    "duration": 5,
+    "width": 1280,
+    "height": 720,
+    "fps": 30
+  }'
+```
+
+成功后你一般会先拿到：
+
+```json
+{
+  "task_id": "abcd1234efgh",
+  "status": "queued"
+}
+```
+
+## 下一步怎么查
+
+```bash
+curl https://api.jingxing.uk/kling/v1/videos/text2video/<TASK_ID> \
+  -H "Authorization: Bearer <YOUR_TOKEN>"
+```
+
+返回里最重要的是：
+
+- `status`
+- `url`
+- `error`
+
+## 最值得先调的几个字段
+
+### `model`
+
+OpenAPI 说明里明确提到了 `kling-v1`、`kling-v1-5` 一类模型。  
+但你当前能用哪个，还是取决于分组开放情况。
+
+### `prompt`
+
+这类任务最怕一句话里塞太多镜头和动作。  
+第一次调试时，尽量只描述：
+
+- 主体是谁
+- 做什么动作
+- 在什么场景
+- 镜头怎么动
+
+### `duration`
+
+第一次建议先用短时长。  
+先确认可以稳定出结果，再慢慢加长。
+
+### `width` / `height`
+
+先用常规尺寸，不要一开始就追最极端规格。
+
+## 最常见的 4 个问题
+
+### 1. 提示词太散
+
+例如一口气要求多个角色、多个动作、多个景别，结果最容易不稳。
+
+### 2. 还没完成就找结果
+
+先查状态，别先找文件。
+
+### 3. 当前 token 没开放 Kling 模型
+
+这时最容易误以为是接口不兼容。  
+其实更常见的是分组没开。
+
+### 4. 把这条当成同步接口
+
+它是任务制，不是即时返回完整视频。
+
+## 推荐动作
+
+如果你要先验证文生视频链路：
+
+1. 先用短提示词
+2. 时长先用 5 秒
+3. 成功拿到 `task_id` 后再查状态
+4. 任务完成后再决定是否放大规格
+
+## 下一步
+
+- 想做带参考图的视频：看[Kling 图生视频](/docs/models/kling-image-to-video)
+- 想统一看任务状态：看[视频任务状态查询](/docs/models/video-task-status)
+- 想排查 429 / 500：看[错误与重试](/docs/platform/errors-and-retries)

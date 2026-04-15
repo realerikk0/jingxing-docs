@@ -47,6 +47,24 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
+      label: '图片',
+      items: [
+        'models/image-generation',
+        'models/image-editing',
+      ],
+    },
+    {
+      type: 'category',
+      label: '视频',
+      items: [
+        'models/video-generation',
+        'models/video-task-status',
+        'models/kling-text-to-video',
+        'models/kling-image-to-video',
+      ],
+    },
+    {
+      type: 'category',
       label: 'FAQs',
       items: [
         'faq/general',
