@@ -18,9 +18,11 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: '中转站基本介绍',
       items: [
+        'getting-started/playground',
         'platform/group-table',
         'platform/group-price-differences',
         'platform/create-token-by-group',
+        'api-reference/authentication',
         'platform/token-management',
         'platform/quotas-and-billing',
         'platform/errors-and-retries',
@@ -36,6 +38,7 @@ const sidebars: SidebarsConfig = {
         'integrations/cherry-studio',
         'integrations/lobe-chat',
         'integrations/open-webui',
+        'integrations/nextchat',
       ],
     },
     {
@@ -46,6 +49,7 @@ const sidebars: SidebarsConfig = {
         'faq/billing-and-quotas',
         'faq/http-status-codes',
         'faq/errors-and-debugging',
+        'faq/security-and-privacy',
       ],
     },
   ],
