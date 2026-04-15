@@ -1,15 +1,144 @@
 ---
 title: "OpenAI Codex"
 description: "如何在 OpenAI Codex 或兼容客户端中使用井陉"
+sidebar_position: 3
 ---
 
 # OpenAI Codex
 
-这页建议重点解决“兼容但不完全一致”的问题。
+这一页最重要的不是“硬凑一个能跑的接法”，而是先把边界说清楚。  
+截至 2026-04-15，OpenAI 官方的 Codex 产品线包括 Codex CLI、Codex App、Web 和 IDE surfaces；它们首先是围绕 OpenAI 自己的账户体系和官方能力设计的，而不是把任意第三方 OpenAI 兼容网关当作默认主路径。
 
-## 推荐内容
+## 先说结论
 
-- Base URL 配置
-- 认证方式
-- 建议模型
-- 与官方接口的差异点
+- 如果你说的是 **OpenAI 官方 Codex App / Web**：不建议把这一页理解成“直接接井陉”的教程
+- 如果你说的是 **Codex CLI 的高级 API-key / provider 配置**：存在一定兼容空间，但不应当当作零成本、零差异方案
+- 如果你的目标是“稳定地通过井陉做编码助手接入”，当前阶段优先推荐 [Cursor](/docs/integrations/cursor) 或 [Cherry Studio](/docs/integrations/cherry-studio)
+
+## 为什么这页要写得更保守
+
+因为“OpenAI 兼容”并不自动等于“所有 OpenAI 自家工具都能无缝切第三方网关”。
+
+对于 Codex 这类产品，你需要同时考虑：
+
+- 官方支持的登录方式
+- 官方支持的 API key 路径
+- 客户端是否允许自定义 provider / base URL
+- 具体 surface 是 App、Web、CLI 还是 IDE
+
+这几件事并不是完全一样的。
+
+## 官方原生使用路径
+
+根据 OpenAI 官方 Codex 仓库与文档，Codex CLI 的推荐主路径是：
+
+- 直接用 ChatGPT 账户登录
+- 或按官方文档做 API key 额外配置
+
+这意味着：如果你只是想“用 OpenAI 官方 Codex 原生体验”，最稳的方案仍然是走官方原生路径，而不是先想着把它改造成一个第三方网关客户端。
+
+## 哪些场景下可以考虑井陉
+
+### 1. 你使用的是更偏工程化的 Codex CLI 配置
+
+Codex CLI 本身是开源项目，也存在自定义 provider、profile 或 API-key 路径。  
+如果你团队对 CLI 配置和兼容性有足够控制力，可以把井陉当作一个“受控实验路径”去验证。
+
+### 2. 你真正要的是“编码类工作流 + 统一网关”
+
+如果你的目标不是追求 OpenAI 原生 Codex 界面，而是：
+
+- 统一令牌
+- 统一模型访问
+- 统一审计
+- 统一额度管理
+
+那井陉当然有价值，只是更适合放在“统一模型接入层”的位置，而不是强行假设所有 Codex surface 都会把它当成第一等公民。
+
+## 建议怎么理解“兼容但不完全一致”
+
+最核心的差异在这里：
+
+- 井陉优先提供的是 OpenAI 兼容网关接口
+- OpenAI Codex 优先提供的是 OpenAI 自家 coding agent 体验
+
+所以你可以把井陉理解成：
+
+- 对很多通用客户端来说，是直接接入点
+- 对 Codex 来说，更像一个需要验证的兼容路径
+
+## 如果你一定要尝试 Codex CLI + 井陉
+
+建议按下面思路理解，而不是直接在生产环境无脑上：
+
+### 1. 先确认你的版本支持 API-key / provider 配置
+
+不同 Codex 版本的可配置能力和行为可能不同。  
+先确认当前版本是否允许你用 API key 模式，以及是否存在可用的 provider / profile 配置入口。
+
+### 2. 把井陉当成“实验性 provider”先小范围验证
+
+先不要直接把团队主工作流全部切过去。  
+优先只验证：
+
+- 能否发起最小请求
+- 能否列出或选择目标模型
+- 能否在最小任务下稳定工作
+
+### 3. 先只测一个模型
+
+第一轮只选一个明确可用、你已经验证过的模型。  
+如果一上来就混很多模型、很多 profile，你很难判断问题到底出在：
+
+- Codex 自身
+- provider 配置
+- Base URL
+- 还是井陉分组与模型权限
+
+## 什么时候不推荐继续折腾
+
+出现以下情况时，不建议继续把时间花在“强接 Codex 官方 surface 到井陉”上：
+
+- 你真正要的是稳定生产效率，而不是兼容性实验
+- 你只是想要一个好用的编码客户端
+- 你需要团队成员零培训、零额外配置
+
+这时直接用：
+
+- [Cursor](/docs/integrations/cursor)
+- [Cherry Studio](/docs/integrations/cherry-studio)
+
+往往会更快拿到结果。
+
+## 常见问题
+
+### 井陉不是 OpenAI 兼容吗，为什么 Codex 还不一定能直接接
+
+因为“OpenAI 兼容”通常指接口协议兼容，不代表 OpenAI 自家所有产品表层都把第三方 endpoint 作为默认支持路径。
+
+### OpenAI Codex App / Web 能不能直接换成井陉
+
+这页不建议把它当成当前默认可行方案。  
+至少在现阶段，官方主路径仍然是 OpenAI 自己的账户体系和官方配置。
+
+### Codex CLI 能不能试
+
+可以试，但建议明确把它当成高级用户的兼容性验证，而不是默认新手接入方案。
+
+### 那这一页为什么还保留
+
+因为现实里确实会有人问“井陉能不能喂给 Codex 用”。  
+这一页的价值不是鼓励误接，而是提前把预期校准好，帮你少走弯路。
+
+## 官方参考
+
+- [OpenAI Codex CLI GitHub README](https://github.com/openai/codex)
+- [OpenAI Codex Documentation](https://platform.openai.com/docs/codex)
+- [OpenAI Help: Using Codex with your ChatGPT plan](https://help.openai.com/en/articles/11369540-using-codex-with-your-chatgpt-plan)
+- [OpenAI Help: Codex CLI and Sign in with ChatGPT](https://help.openai.com/en/articles/11381614)
+
+## 下一步
+
+- 想要最稳的井陉编码客户端接入：优先看[Cursor](/docs/integrations/cursor)
+- 想用桌面多模型聚合客户端：看[Cherry Studio](/docs/integrations/cherry-studio)
+- 想先把 API 和令牌跑通：看[API 快速开始](/docs/getting-started/api-quickstart)和[令牌管理](/docs/platform/token-management)
