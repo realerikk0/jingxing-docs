@@ -1,29 +1,35 @@
 ---
 title: "聊天"
-description: "先跑通 /v1/chat/completions，再理解 Claude Messages 什么时候更合适"
+description: "使用 /v1/chat/completions 或 /v1/messages 建立聊天主链路"
 sidebar_position: 1
 ---
 
 # 聊天
 
-这一页解决的是：
-
-**我现在要让模型开始正常对话，应该先走哪条接口，最小请求怎么写。**
-
-当前项目里已经明确暴露了两条聊天主链路：
+井陉当前提供两条主要聊天接口路径：
 
 - `POST /v1/chat/completions`
 - `POST /v1/messages`
 
-如果你只是想先把主流客户端、后端服务、脚本调通，**优先用 `/v1/chat/completions`**。  
-如果你本来就是按 Anthropic Claude Messages 格式在发请求，再看 `/v1/messages`。
+对于大多数 SDK、客户端和后端服务，推荐优先使用 `chat/completions`。如当前工作流原生基于 Anthropic Messages 协议，可使用 `messages` 路径。
 
-## 先说结论
+## 接口选择建议
 
-- 通用接入优先走 `chat/completions`
-- Claude 原生工作流再考虑 `messages`
-- 第一次验证不要先上流式、工具调用、图像输入
-- 先把一条最小对话跑通，再慢慢加复杂参数
+### `/v1/chat/completions`
+
+适用于以下场景：
+
+- 通用 OpenAI 兼容接入
+- 主流客户端与后端服务
+- 首次 API 验证
+
+### `/v1/messages`
+
+适用于以下场景：
+
+- 现有工作流基于 Anthropic Claude Messages 协议
+- 需要保持 Claude 原生请求结构
+- 已明确使用 `anthropic-version` 请求头
 
 ## 最小请求：Chat Completions
 
@@ -42,25 +48,14 @@ curl https://api.jingxing.uk/v1/chat/completions \
   }'
 ```
 
-这是当前最稳的起点。  
-只要这条能通，就说明你的：
+该请求主要用于验证：
 
-- token
-- Base URL
-- 模型权限
-- 基本聊天链路
+- 令牌是否有效
+- Base URL 是否正确
+- 当前模型是否可用
+- 聊天主链路是否已建立
 
-至少已经是正常的。
-
-## 什么时候要改用 `/v1/messages`
-
-`/v1/messages` 更适合这些情况：
-
-- 你原本就按 Anthropic SDK 或 Claude 原生协议在发请求
-- 你需要保持 Claude Messages 的请求结构
-- 你明确知道自己要带 `anthropic-version`
-
-最小请求示例：
+## 最小请求：Claude Messages
 
 ```bash
 curl https://api.jingxing.uk/v1/messages \
@@ -73,20 +68,20 @@ curl https://api.jingxing.uk/v1/messages \
     "messages": [
       {
         "role": "user",
-        "content": "请用三句话总结这段对话的重点。"
+        "content": "请用三句话总结这段内容。"
       }
     ]
   }'
 ```
 
-这里最容易漏掉的就是：
+使用该接口时，应特别注意以下字段：
 
 - `anthropic-version`
 - `max_tokens`
 
-## 先别急着动的参数
+## 参数使用建议
 
-`/v1/chat/completions` 当前 OpenAPI 里已经列出了很多能力：
+`/v1/chat/completions` 当前已支持多项扩展能力，例如：
 
 - `stream`
 - `tools`
@@ -96,54 +91,46 @@ curl https://api.jingxing.uk/v1/messages \
 - `modalities`
 - `audio`
 
-但如果你是第一次接井陉，建议先别一起上。  
-最稳的顺序是：
+首次接入建议采用分阶段验证方式：
 
-1. 先只传 `model + messages`
-2. 再试 `stream`
-3. 再试工具调用
-4. 最后再碰多模态或音频输出
+1. 先仅使用 `model + messages`
+2. 再验证 `stream`
+3. 再验证工具调用
+4. 最后扩展多模态或音频能力
 
-## 最常见的 5 个问题
+## 常见问题
 
-### 1. 模型名看起来对，但当前 token 根本不可见
+### 模型不可见
 
-这时候最容易被误判成“接口不兼容”。  
-先跑 `GET /v1/models`，别靠记忆。
+常见原因是当前令牌或分组未开放目标模型。建议先执行 `GET /v1/models` 确认模型可见性。
 
-### 2. `messages` 格式写错
+### `messages` 结构错误
 
-尤其是不同客户端导出的结构不一样时，最容易在这里出 `400`。
+不同客户端导出的消息结构可能存在差异。出现 `400` 时，应优先校验消息数组结构。
 
-### 3. Claude 请求忘了带 `anthropic-version`
+### 未携带 `anthropic-version`
 
-如果你走的是 `/v1/messages`，这一步一定要检查。
+使用 `/v1/messages` 时，如未携带 `anthropic-version`，请求可能无法按预期工作。
 
-### 4. 一开始就开流式 + 工具 + 超长上下文
+### 首次验证即叠加过多参数
 
-这样一旦报错，很难一眼知道是哪一层出问题。
+首次请求同时叠加流式、工具调用和长上下文，会增加排查复杂度。建议采用最小请求逐步扩展。
 
-### 5. 聊天接口能用，就以为所有能力都能用
+### 聊天可用但其他能力不可用
 
-聊天可用不代表：
+聊天能力验证通过并不自动代表图片、视频或音频能力已经开放，这些能力仍取决于当前分组与模型权限。
 
-- 图片一定可用
-- 视频一定可用
-- 音频一定可用
+## 使用建议
 
-这些都还要看分组和模型开放情况。
+建议按以下顺序进行聊天能力验证：
 
-## 推荐动作
+1. 执行 `GET /v1/models`
+2. 选择一个常规聊天模型
+3. 发送非流式最小请求
+4. 成功后再接入客户端或扩展参数
 
-如果你现在就是要验证聊天能力：
+## 继续阅读
 
-1. 先跑 `GET /v1/models`
-2. 选一个最常规的聊天模型
-3. 先发一条非流式最小请求
-4. 成功后再接客户端或继续扩参数
-
-## 下一步
-
-- 你在接 Cursor / Cherry / Open WebUI：看[开发工具](/docs/integrations/cursor)
-- 你还在排 401 / 403 / 429：看[HTTP 状态码总览](/docs/faq/http-status-codes)
-- 你想继续做向量召回：看[Embeddings](/docs/models/embeddings)
+- [Cursor](/docs/integrations/cursor)
+- [HTTP 状态码总览](/docs/faq/http-status-codes)
+- [Embeddings](/docs/models/embeddings)

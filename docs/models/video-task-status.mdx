@@ -1,50 +1,46 @@
 ---
 title: "视频任务状态查询"
-description: "学会查询 /v1/videos 和 Kling 视频任务的状态，并在完成后拿结果"
+description: "查询 /v1/videos 与 Kling 视频任务状态，并在任务完成后获取结果"
 sidebar_position: 2
 ---
 
 # 视频任务状态查询
 
-视频能力最容易卡住的一步，不是“怎么提交任务”，而是：
+视频能力通常采用任务制处理流程，因此查询任务状态是视频接入中的关键环节。本文用于说明井陉当前两类视频任务的查询方式、状态含义和推荐轮询策略。
 
-**任务已经提上去了，我到底该怎么判断它是在排队、执行、失败，还是已经能拿结果。**
-
-这一页就是为这个场景准备的。
-
-## 你会遇到两套查询方式
+## 支持的查询路径
 
 ### OpenAI 兼容视频任务
 
-适用于你先走了：
+当任务通过以下接口创建时：
 
 - `POST /v1/videos`
 
-后续查询用：
+后续应通过以下接口查询：
 
 - `GET /v1/videos/{task_id}`
 - `GET /v1/videos/{task_id}/content`
 
 ### Kling 视频任务
 
-适用于你走了：
+当任务通过以下接口创建时：
 
 - `POST /kling/v1/videos/text2video`
 - `POST /kling/v1/videos/image2video`
 
-后续查询用：
+后续应通过以下接口查询：
 
 - `GET /kling/v1/videos/text2video/{task_id}`
 - `GET /kling/v1/videos/image2video/{task_id}`
 
-## OpenAI 兼容任务怎么查
+## OpenAI 兼容任务查询
 
 ```bash
 curl https://api.jingxing.uk/v1/videos/<TASK_ID> \
   -H "Authorization: Bearer <YOUR_TOKEN>"
 ```
 
-你通常会看到这些字段：
+常见返回字段包括：
 
 - `id`
 - `status`
@@ -52,7 +48,7 @@ curl https://api.jingxing.uk/v1/videos/<TASK_ID> \
 - `created_at`
 - `seconds`
 
-如果任务已经完成，再取内容：
+任务完成后，可进一步获取视频内容：
 
 ```bash
 curl -L https://api.jingxing.uk/v1/videos/<TASK_ID>/content \
@@ -60,23 +56,23 @@ curl -L https://api.jingxing.uk/v1/videos/<TASK_ID>/content \
   -o result.mp4
 ```
 
-## Kling 任务怎么查
+## Kling 任务查询
 
-### 文生视频任务
+### 文生视频
 
 ```bash
 curl https://api.jingxing.uk/kling/v1/videos/text2video/<TASK_ID> \
   -H "Authorization: Bearer <YOUR_TOKEN>"
 ```
 
-### 图生视频任务
+### 图生视频
 
 ```bash
 curl https://api.jingxing.uk/kling/v1/videos/image2video/<TASK_ID> \
   -H "Authorization: Bearer <YOUR_TOKEN>"
 ```
 
-Kling 查询结果里，你通常最关心：
+Kling 任务结果中，建议重点关注：
 
 - `task_id`
 - `status`
@@ -84,80 +80,75 @@ Kling 查询结果里，你通常最关心：
 - `format`
 - `error`
 
-## `status` 应该怎么理解
+## 状态字段说明
 
-当前 OpenAPI 里明确出现的状态包括：
+当前 OpenAPI 中明确出现的状态包括：
 
 - `queued`
 - `in_progress`
 - `completed`
 - `failed`
 
-最稳的判断方式是：
-
 ### `queued`
 
-任务已接收，但还在排队。
+表示任务已接收，但仍在排队。
 
 ### `in_progress`
 
-任务已经开始执行。
+表示任务已经开始执行。
 
 ### `completed`
 
-可以开始取结果了。  
-OpenAI 兼容路径继续去拉 `/content`，Kling 路径通常直接看 `url`。
+表示任务已完成。对于 OpenAI 兼容路径，应继续请求 `/content` 获取视频文件；对于 Kling 路径，通常应查看返回中的 `url`。
 
 ### `failed`
 
-别先无脑重试。  
-先看是参数问题、权限问题，还是上游波动。
+表示任务执行失败。建议优先区分是参数问题、权限问题还是上游链路异常，不宜直接原样重复提交。
 
-## 推荐的轮询方式
+## 轮询建议
 
-不要每秒狂刷一次。  
-运营和工程上都更稳的做法是：
+推荐采用有限频率轮询策略：
 
-1. 提交后先等 3 到 5 秒
-2. 然后每 5 到 10 秒查一次
-3. 设置总超时
+1. 提交任务后先等待 3 到 5 秒
+2. 随后每 5 到 10 秒查询一次
+3. 设置总超时时间
 4. 超时后再决定是否重新提交
 
-## 最常见的 5 个错误
+该方式有助于降低不必要的轮询压力，并减少误判。
 
-### 1. 把 `task_id` 和 `id` 混了
+## 常见问题
 
-OpenAI 兼容接口更常返回 `id`，Kling 更常返回 `task_id`。  
-别直接复制粘贴混用。
+### 混用 `task_id` 与 `id`
 
-### 2. 任务还没完成就开始拿内容
+OpenAI 兼容接口通常返回 `id`，Kling 路径通常返回 `task_id`，应避免混用。
 
-这时最容易报 404 或“文件不存在”。
+### 任务未完成即请求内容
 
-### 3. 查询路径写错
+此类情况通常会返回 404 或“文件不存在”。
 
-你要先确认自己是走的 `/v1/videos`，还是 `/kling/v1/videos/...`。  
-两条线别混。
+### 查询路径错误
 
-### 4. 一直轮询旧任务
+应先确认任务是通过 `/v1/videos` 创建，还是通过 `/kling/v1/videos/...` 创建，再选择对应查询路径。
 
-调试时最容易发生：你以为自己在查新任务，实际上拿的还是上一次失败的 ID。
+### 持续轮询旧任务
 
-### 5. `failed` 后直接原样重发
+排查时应确认当前查询的任务 ID 是否为本次提交返回的最新值。
 
-如果失败原因是请求本身有问题，原样重发通常只会再失败一次。
+### 失败后直接原样重提
 
-## 推荐动作
+如失败原因是请求参数或权限配置问题，原样重提通常不会解决问题。
 
-如果你现在卡在“视频一直没结果”，按这个顺序最稳：
+## 使用建议
 
-1. 先确认你提交的是哪种任务
-2. 再确认查询路径
-3. 再确认任务 ID 没拿错
-4. 看到 `completed` 后再取内容
+建议按以下顺序处理视频任务状态问题：
 
-## 下一步
+1. 确认任务创建路径
+2. 确认查询路径
+3. 确认任务 ID 正确
+4. 在 `completed` 后再获取结果
 
-- 想提交 OpenAI 风格视频任务：看[OpenAI 兼容视频生成](/docs/models/video-generation)
-- 想直接走 Kling 文生视频：看[Kling 文生视频](/docs/models/kling-text-to-video)
-- 想直接走 Kling 图生视频：看[Kling 图生视频](/docs/models/kling-image-to-video)
+## 继续阅读
+
+- [OpenAI 兼容视频生成](/docs/models/video-generation)
+- [Kling 文生视频](/docs/models/kling-text-to-video)
+- [Kling 图生视频](/docs/models/kling-image-to-video)
