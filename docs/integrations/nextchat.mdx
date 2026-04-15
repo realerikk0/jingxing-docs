@@ -31,6 +31,18 @@ NextChat 是一个轻量、自部署友好的聊天前端，适合通过 OpenAI 
 
 井陉优先提供 OpenAI 兼容接口，因此该路径与 NextChat 的默认配置方式匹配度较高。
 
+## 官方界面示意
+
+以下界面示意来自 NextChat 官方仓库 README 的环境变量章节，用于说明自部署场景下最关键的配置项。
+
+![NextChat 环境变量配置示意](/img/integrations/nextchat-env-doc.png)
+
+与井陉接入直接相关的字段如下：
+
+- `OPENAI_API_KEY`：填写井陉令牌
+- `BASE_URL`：填写 `https://api.jingxing.uk/v1`
+- 建议先完成最小变量组合验证，再继续扩展其他部署参数
+
 ## 配置步骤
 
 ### 1. 在井陉侧创建 NextChat 专用令牌

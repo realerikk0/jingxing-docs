@@ -35,6 +35,18 @@ Lobe Chat 适合构建完整的 Web 聊天前端，并通过 OpenAI 兼容接口
 - `OPENAI_API_KEY`
 - `OPENAI_PROXY_URL`
 
+## 官方界面示意
+
+以下界面示意来自 LobeHub 官方文档的模型服务商环境变量章节，用于说明接入兼容网关时需要关注的核心变量。
+
+![Lobe Chat 模型服务商环境变量示意](/img/integrations/lobe-model-provider-doc.png)
+
+与井陉接入最直接相关的字段包括：
+
+- `OPENAI_API_KEY`：填写井陉令牌
+- `OPENAI_PROXY_URL`：填写 `https://api.jingxing.uk/v1`
+- 其余变量仅在需要混合接入其他 provider 时再逐步启用
+
 ## 配置步骤
 
 ### 1. 在井陉侧创建 Lobe Chat 专用令牌

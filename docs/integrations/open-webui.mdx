@@ -32,6 +32,18 @@ Open WebUI 的推荐接入顺序为：
 
 该顺序有助于将主链路验证与扩展能力验证分开处理，降低排查复杂度。
 
+## 官方界面示意
+
+以下界面示意来自 Open WebUI 官方文档的 OpenAI-compatible 接入页，用于说明 provider connection 的验证逻辑与配置入口。
+
+![Open WebUI OpenAI-compatible 接入示意](/img/integrations/openwebui-compatible-doc.png)
+
+图中应重点关注以下信息：
+
+- Open WebUI 会在新增 provider connection 时尝试校验 `/models`
+- 如 provider 不支持自动探测，需在模型白名单中手动补充模型 ID
+- 首次接入建议先完成聊天主链路验证，再扩展其他能力
+
 ## 配置步骤
 
 ### 1. 在井陉侧创建 Open WebUI 专用令牌
