@@ -9,11 +9,16 @@ jobs:
   build:
     name: Build Docusaurus
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
 
       - uses: actions/setup-node@v4
         with:
@@ -27,7 +32,7 @@ jobs:
         run: npm run build
 
       - name: Upload Build Artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: build
 
@@ -35,6 +40,7 @@ jobs:
     name: Deploy to GitHub Pages
     needs: build
     permissions:
+      contents: read
       pages: write
       id-token: write
     environment:
