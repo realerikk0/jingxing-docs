@@ -1,33 +1,115 @@
 ---
 title: "快速开始"
 description: "第一次使用井陉时最短的上手路径"
+sidebar_position: 2
 ---
 
 # 快速开始
 
-## 目标
+这篇文档的目标是帮你在最短路径内完成一件事：从零拿到一个可用令牌，并成功发出第一条 API 请求。
 
-在 5 分钟内完成以下动作：
-
-1. 登录井陉控制台
-2. 创建一个可用的 API 令牌
-3. 获取基础调用地址
-4. 用 `curl` 发出第一条请求
-
-## 你会用到
+## 准备工作
 
 - 控制台地址：`https://jingxing.uk`
 - API 地址：`https://api.jingxing.uk/v1`
-- 令牌：在控制台创建
+- 一个可访问控制台的账号
+- 一个用于调用 API 的令牌
 
-## 首次使用流程
+## 第 1 步：登录控制台
 
-1. 登录控制台并进入令牌管理页面。
-2. 创建一个新令牌，选择分组与额度策略。
-3. 复制令牌，并保存到你自己的环境变量。
-4. 按照[API 快速开始](/docs/getting-started/api-quickstart)发送第一个请求。
+先打开控制台并确认你可以正常进入用户工作区。第一次进入时，建议先确认下面三件事：
+
+- 你所在账号是否拥有创建令牌的权限
+- 当前账号可用的默认分组是什么
+- 当前余额或额度是否足够完成测试请求
+
+## 第 2 步：创建令牌
+
+进入令牌管理页，创建一个新的 API 令牌。首次测试建议使用单独的新令牌，而不是复用旧令牌，原因有两个：
+
+- 便于单独排查额度、权限和分组问题
+- 便于后续给不同客户端做隔离和审计
+
+创建令牌时，至少确认以下选项：
+
+- 令牌名称：建议按用途命名，例如 `local-test`、`cursor-dev`、`ci-bot`
+- 分组：先选择最适合当前测试目标的分组
+- 额度策略：首次测试保证有足够额度
+- 过期时间：临时测试令牌可以设置较短有效期
+- 模型限制：如果不确定，先不要做过窄的限制
+
+## 第 3 步：保存到环境变量
+
+建议不要把令牌直接写进代码或仓库，而是保存到本地环境变量：
+
+```bash
+export JINGXING_API_KEY="<YOUR_TOKEN>"
+export JINGXING_BASE_URL="https://api.jingxing.uk/v1"
+```
+
+之后无论是 `curl`、脚本还是第三方客户端，都可以复用这一组值。
+
+## 第 4 步：先测模型列表
+
+先用一个最轻量的请求确认鉴权和基础连通性：
+
+```bash
+curl "$JINGXING_BASE_URL/models" \
+  -H "Authorization: Bearer $JINGXING_API_KEY"
+```
+
+如果返回模型列表，说明以下几件事已经成立：
+
+- 域名可达
+- 令牌有效
+- 请求头正确
+- 当前令牌至少具备基本调用权限
+
+## 第 5 步：发送第一条聊天请求
+
+```bash
+curl "$JINGXING_BASE_URL/chat/completions" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $JINGXING_API_KEY" \
+  -d '{
+    "model": "gpt-5.4",
+    "messages": [
+      {"role": "system", "content": "你是一个简洁的助手。"},
+      {"role": "user", "content": "用一句话介绍井陉。"}
+    ]
+  }'
+```
+
+如果返回 `choices`，说明你的第一条请求已经跑通。
+
+## 常见问题
+
+### 返回 401
+
+优先检查这三项：
+
+- 有没有带 `Authorization: Bearer ...`
+- 令牌是否复制完整
+- 令牌是否已停用、过期或无权限
+
+### 返回模型不存在或不可用
+
+通常是以下原因之一：
+
+- 当前分组不支持该模型
+- 该令牌做了模型限制
+- 模型名拼写不一致
+
+### 返回 429 或超时
+
+建议先不要立刻怀疑令牌本身，而是先检查：
+
+- 当前分组是否适合高并发或长输出场景
+- 是否用到了不适合当前分组的模型
+- 是否需要切换到更稳定或更高配额的分组
 
 ## 下一步
 
-- 想理解分组与价格：继续看[模型分组](/docs/platform/model-groups)
-- 想接入客户端：继续看[Claude Code 接入](/docs/integrations/claude-code)
+- 想系统理解分组和策略：继续看[模型分组](/docs/platform/model-groups)
+- 想直接开始写代码接入：继续看[API 快速开始](/docs/getting-started/api-quickstart)
+- 想把客户端接上：继续看[Claude Code 接入](/docs/integrations/claude-code)

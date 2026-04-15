@@ -1,20 +1,128 @@
 ---
 title: "Claude Code"
 description: "如何在 Claude Code 中接入井陉"
+sidebar_position: 1
 ---
 
 # Claude Code
 
-## 建议结构
+Claude Code 是 Anthropic 的终端编码工具。对井陉来说，最稳妥的接入方式不是把每个开发者的终端都直接绑定到某个上游厂商，而是通过组织内的 `LLM gateway / proxy` 统一接入，再由网关层对接井陉。
 
-1. 适合谁
-2. 前置条件
-3. 配置步骤
-4. 验证方法
-5. 常见报错
+## 先说结论
 
-## 初版待补
+- 如果你的团队已经使用 Claude Code 的企业代理或 LLM gateway 方案，井陉非常适合作为后端统一路由层。
+- 如果你希望“单机、零代理、直接填写 OpenAI 兼容地址就跑”，那更推荐先使用 Cursor、Cherry Studio 或其他原生支持自定义 OpenAI 兼容端点的客户端。
 
-- 环境变量名
-- CLI 配置截图
-- 是否需要模型映射
+## 为什么 Claude Code 的接法和普通客户端不一样
+
+Claude Code 的官方支持路径，核心是以下几类：
+
+- 直接使用 Anthropic 官方 API
+- 使用 Amazon Bedrock
+- 使用 Google Vertex AI
+- 使用企业代理或 LLM gateway
+
+井陉本身是一层 AI 网关，因此更适合出现在“团队代理层”或“统一网关层”的位置，而不是要求每个终端都各自持有上游厂商凭据。
+
+## 推荐架构
+
+```text
+Claude Code
+  -> 企业代理 / LLM gateway
+    -> Jingxing
+      -> Claude 渠道与其他模型渠道
+```
+
+这种方式的优势是：
+
+- 统一管理团队鉴权
+- 统一审计和用量统计
+- 可以在网关层控制模型路由、预算和可用模型范围
+
+## 接入前提
+
+在开始前，建议先确认以下条件已经满足：
+
+1. 井陉侧已经启用至少一个可用的 Claude 模型渠道
+2. 你已经有一个专门给团队或环境使用的令牌，而不是复用个人测试令牌
+3. 你的 Claude Code 部署方式已经支持企业代理或 LLM gateway
+4. 团队内部已经明确哪些请求应该经过统一网关，而不是直接访问上游
+
+## 井陉侧准备步骤
+
+### 1. 准备 Claude 能力
+
+先在井陉后台确认以下内容：
+
+- 至少有一条 Claude 相关渠道处于启用状态
+- 当前分组允许该模型对外可见
+- 当前令牌可用于团队或环境级调用
+
+### 2. 为 Claude Code 单独准备令牌
+
+建议不要直接复用本地开发测试令牌，而是单独准备：
+
+- 一个独立名称
+- 一个清晰的分组
+- 必要的额度与审计边界
+
+### 3. 在网关层接入井陉
+
+如果你的团队已经有内部 LLM gateway，请把 Claude 相关请求统一路由到井陉侧的策略和渠道，而不是把每个终端直连多个供应商。
+
+## Claude Code 侧建议
+
+### 推荐做法
+
+- 使用 Claude Code 最新版本
+- 按 Anthropic 官方文档配置企业代理或 LLM gateway
+- 用团队统一网关出口去访问井陉管理的 Claude 能力
+
+### 不推荐的做法
+
+- 每台机器手动维护不同上游厂商的私钥
+- 把生产令牌直接散落在个人环境里
+- 把“临时测试接法”直接复制到团队级环境
+
+## 验证方式
+
+接入完成后，建议用最简单的问题先做验证，例如：
+
+```bash
+claude -p "用三句话总结当前仓库是做什么的"
+```
+
+验证时重点看三件事：
+
+- Claude Code 是否能正常发起请求
+- 井陉侧是否能看到对应调用日志
+- 额度和分组是否按预期生效
+
+## 常见问题
+
+### 看起来接入了，但没有经过井陉
+
+这种情况通常不是井陉问题，而是 Claude Code 仍在走默认的官方接入方式。应先检查代理、网关或企业配置是否真正生效。
+
+### 令牌可用，但 Claude Code 还是失败
+
+优先检查：
+
+- 你的 Claude Code 部署路径是否支持当前接法
+- 网络是否允许访问代理或网关
+- 代理层是否已正确转发到井陉
+
+### 团队里有人能用、有人不能用
+
+通常是环境变量、代理、证书或企业网络策略不一致。先统一团队入口，再排查个人终端差异。
+
+## 官方参考
+
+- [Anthropic: Claude Code getting started](https://docs.anthropic.com/en/docs/claude-code/getting-started)
+- [Anthropic: Claude Code LLM gateway configuration](https://docs.anthropic.com/en/docs/claude-code/llm-gateway)
+- [Anthropic: Claude Code corporate proxy configuration](https://docs.anthropic.com/en/docs/claude-code/corporate-proxy)
+
+## 下一步
+
+- 如果你希望先做最省心的个人接入，建议优先看[Cursor](/docs/integrations/cursor)或[Cherry Studio](/docs/integrations/cherry-studio)
+- 如果你要做团队级落地，建议继续补充一页“企业代理 / LLM gateway 与井陉的集成方案”

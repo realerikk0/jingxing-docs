@@ -1,25 +1,39 @@
 ---
 title: "API 快速开始"
 description: "用 OpenAI 兼容方式调用井陉 API"
+sidebar_position: 3
 ---
 
 # API 快速开始
 
-井陉优先提供 OpenAI 兼容调用方式，便于现有 SDK 与客户端平滑切换。
+井陉优先提供 OpenAI 兼容调用方式，目标是让你在尽量少改动客户端代码的前提下完成接入。
 
 ## Base URL
 
 `https://api.jingxing.uk/v1`
 
-## Authorization
+## 鉴权方式
 
-使用 Bearer Token：
+所有公共请求都使用 Bearer Token：
 
 ```http
 Authorization: Bearer <YOUR_TOKEN>
 ```
 
-## 最小示例
+## 最小联通性检查：获取模型列表
+
+```bash
+curl https://api.jingxing.uk/v1/models \
+  -H "Authorization: Bearer <YOUR_TOKEN>"
+```
+
+这个请求适合做三类用途：
+
+- 检查令牌是否有效
+- 检查当前令牌大致可见的模型范围
+- 检查客户端网络和域名是否可达
+
+## 最小可用示例：聊天补全
 
 ```bash
 curl https://api.jingxing.uk/v1/chat/completions \
@@ -33,9 +47,67 @@ curl https://api.jingxing.uk/v1/chat/completions \
   }'
 ```
 
-## 初版需要补充的内容
+## 请求要点
 
-- 支持模型的完整列表
-- 每个分组允许的模型范围
-- 价格与额度换算方式
-- 常见错误响应与排查步骤
+### 模型名
+
+请求中的 `model` 必须填写当前令牌与当前分组实际可用的模型名。  
+同一平台内是否可见某个模型，取决于以下几件事：
+
+- 当前分组策略
+- 当前令牌的模型限制
+- 后台是否已启用对应上游渠道
+
+### OpenAI 兼容范围
+
+对于大多数现有集成，迁移时只需要替换三项：
+
+- `Base URL`
+- `API Key`
+- `model`
+
+如果你的客户端支持自定义 OpenAI 兼容地址，井陉通常可以直接接入。
+
+### 请求头
+
+最常见的两类错误都来自请求头：
+
+- 少了 `Authorization`
+- 少了 `Content-Type: application/json`
+
+## 推荐接入顺序
+
+1. 先跑 `GET /models`
+2. 再跑 `POST /chat/completions`
+3. 再接入你自己的 SDK、服务端或客户端
+4. 最后再做流式输出、工具调用、图片或其他扩展能力
+
+## 常见错误
+
+### 401 未认证
+
+通常是令牌问题、请求头问题，或者把控制台 token 和 API token 搞混了。
+
+### 400 参数错误
+
+优先检查：
+
+- `model` 是否存在
+- `messages` 是否是正确数组
+- JSON 是否合法
+
+### 404 或无法连通
+
+最常见的问题是把地址写成了：
+
+- `https://api.jingxing.uk`
+
+而不是：
+
+- `https://api.jingxing.uk/v1`
+
+## 下一步
+
+- 想理解为什么同一个模型在不同分组表现不同：看[模型分组](/docs/platform/model-groups)
+- 想接客户端：看[开发工具](/docs/integrations/claude-code)
+- 想查公共接口和控制台接口：看[API 概览](/docs/api-reference/overview)

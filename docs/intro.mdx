@@ -1,11 +1,33 @@
 ---
 title: "Jingxing Docs"
-description: "井陉 API 网关与 AI 工作台文档首页"
+description: "井陉 API 网关与 AI 工作台的总览与阅读入口"
+sidebar_position: 1
 ---
 
 # Jingxing Docs
 
-井陉是一个统一制式的 AI 网关与工作台，面向 API 调用、模型分组、令牌管理、计费与开发工具集成。
+井陉是一个统一制式的 AI 网关与工作台，面向 API 调用、模型分组、令牌管理、额度计费与开发工具集成。你可以把它理解成一层稳定、可控、可审计的模型接入层：对外提供一致的调用方式，对内管理不同供应商、不同模型和不同分组策略。
+
+## 适合谁
+
+- 希望通过统一接口接入多个模型系列的开发者
+- 需要按团队、项目或环境隔离令牌与额度的管理员
+- 想把 Cursor、Cherry Studio、Lobe Chat、Claude Code 等客户端统一接到同一套网关的人
+
+## 井陉能解决什么问题
+
+- 用统一的 `Base URL` 和鉴权方式接入多个模型
+- 用分组表达价格、稳定性、可用模型范围和团队策略
+- 把 API 令牌、模型权限、额度与调用审计放到同一处管理
+- 用一致的 OpenAI 兼容方式降低客户端迁移成本
+
+## 快速事实
+
+- 控制台地址：`https://jingxing.uk`
+- API 基础地址：`https://api.jingxing.uk/v1`
+- 默认接入方式：OpenAI 兼容接口
+- 令牌形式：Bearer Token
+- 能力范围：聊天、Embedding、图片、视频、音频/Realtime，以及控制台管理接口
 
 ## 你可以从这里开始
 
@@ -14,21 +36,25 @@ description: "井陉 API 网关与 AI 工作台文档首页"
 - 控制台使用：先看[模型分组](/docs/platform/model-groups)与[令牌管理](/docs/platform/token-management)
 - 第三方客户端：先看[Claude Code 接入](/docs/integrations/claude-code)
 
-## 文档地图
+## 推荐阅读顺序
 
-- `指南`：面向产品使用、配置、计费、错误处理
-- `API 参考`：面向 OpenAI 兼容接口与控制台接口
-- `开发工具`：面向 Claude Code、Cursor、Cherry Studio 等客户端
-- `FAQs`：面向上线前后的高频问题
+1. [快速开始](/docs/getting-started/quickstart)
+2. [API 快速开始](/docs/getting-started/api-quickstart)
+3. [模型分组](/docs/platform/model-groups)
+4. [令牌管理](/docs/platform/token-management)
+5. [Claude Code](/docs/integrations/claude-code)
 
-## 当前版本的写作原则
+## 文档怎么读
 
-- 以 `Jingxing` 自己的品牌、域名、能力边界为准
-- 保留参考站点的目录粒度，但正文全部重写
-- 接口文档优先对齐仓库中的 OpenAPI 规范
+- `开始使用`：先把控制台、令牌和第一条请求跑通
+- `平台使用`：理解分组、价格、额度和错误处理
+- `模型能力`：查看不同能力的适用场景与限制
+- `API 参考`：查看公共接入方式与控制台接口说明
+- `开发工具`：把第三方客户端接到井陉
+- `FAQs`：排查高频错误和上线前后常见问题
 
-## 后续补全建议
+## 默认约定
 
-1. 补首页 Hero、截图、品牌图标与 CTA。
-2. 补模型支持矩阵与分组价目表。
-3. 补真实请求示例与错误响应示例。
+- 除非某页另有说明，本文档默认使用 OpenAI 兼容接口示例
+- 示例域名与地址以当前线上环境为准，正式可用模型、分组与价格以控制台展示为准
+- 涉及团队级或企业级接入时，优先推荐分组隔离、独立令牌和最小权限原则
