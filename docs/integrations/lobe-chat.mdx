@@ -1,159 +1,122 @@
 ---
 title: "Lobe Chat"
-description: "如何在 Lobe Chat 中使用井陉"
+description: "在 Lobe Chat 中通过 OpenAI 兼容方式接入井陉"
 sidebar_position: 5
 ---
 
 # Lobe Chat
 
-Lobe Chat 和井陉的组合很适合两类场景：
+Lobe Chat 适合构建完整的 Web 聊天前端，并通过 OpenAI 兼容接口统一接入井陉。对于井陉而言，Lobe Chat 的推荐方式为自部署方案；若使用官方托管版本，则应先确认当前版本是否允许完整覆盖 OpenAI provider 的 API Key 与 Base URL。
 
-- 你想要一个更完整的聊天前端，但底层模型统一走井陉
-- 你想在自部署环境里，把 OpenAI 兼容网关作为统一接入点
+## 适用场景
 
-这页需要分成两种情况看：**官方托管版** 和 **自部署版**。
+- 需要完整的聊天前端，并统一接入井陉
+- 需要在自部署环境中管理模型、令牌和访问路径
+- 需要为后续图像、音频或 RAG 能力扩展预留空间
 
-## 先说结论
+## 前置条件
 
-- 想完全掌控 Base URL 和 API Key：优先用自部署版
-- 想快速体验：先确认你当前使用的 Lobe Chat 形态是否允许配置 OpenAI provider
-- 想减少后续混乱：给 Lobe Chat 单独发令牌
-- 想少踩坑：先只验证 OpenAI provider 路径，不要一开始混太多 provider
-
-## 接入前准备
-
-无论你用哪一种方式，先准备好：
+请先准备以下信息：
 
 - Base URL：`https://api.jingxing.uk/v1`
-- API Key：一个专门给 Lobe Chat 使用的井陉令牌
-- 模型名：当前分组下已经验证过的模型
+- API Key：专门用于 Lobe Chat 的井陉令牌
+- 模型名称：当前分组下已经验证可用的模型
 
-## 情况一：官方托管版怎么理解
+## 部署形态说明
 
-Lobe Chat 官方托管版本身支持在设置中配置部分模型服务商。  
-如果你当前使用的是面向最终用户的托管版界面，那么最重要的问题不是“能不能输入 token”，而是**它是否允许你真正覆盖 OpenAI provider 的 API key 与 base URL**。
+### 官方托管版
 
-因此更稳的建议是：
+若使用 Lobe Chat 官方托管版本，应优先确认当前设置页面是否允许完整配置 OpenAI provider 的 API Key 与 Base URL。若当前版本仅允许有限配置，则不适合作为统一接入井陉的长期方案。
 
-- 如果只是个人快速体验，先看当前版本设置页是否允许填 OpenAI provider
-- 如果你明确要把底层流量统一走井陉，优先考虑自部署版
+### 自部署版
 
-原因很简单：井陉的价值之一就是“统一网关和统一治理”，而这通常更适合放在你能控制环境变量或服务端配置的地方。
-
-## 情况二：自部署版怎么接
-
-这是更推荐的路径。  
-根据 LobeHub 官方自部署环境变量文档，Lobe Chat 支持通过 OpenAI 相关环境变量来接入兼容接口，其中核心就是：
+自部署版是更推荐的接入方式。根据 LobeHub 官方文档，Lobe Chat 可通过 OpenAI 相关环境变量接入兼容接口，其中最关键的变量为：
 
 - `OPENAI_API_KEY`
 - `OPENAI_PROXY_URL`
 
-对井陉来说，这两项通常就够你先跑通核心聊天链路。
+## 配置步骤
 
-## 推荐接入方式
+### 1. 在井陉侧创建 Lobe Chat 专用令牌
 
-### 1. 先在井陉创建一个 Lobe Chat 专用令牌
+建议配置如下：
 
-推荐配置：
+- 名称：如 `lobe-web`
+- 分组：适合 Web 聊天前端的分组
+- 模型限制：仅开放计划在 Lobe Chat 中使用的模型
+- 额度：覆盖验证与日常使用需求
 
-- 名称：`lobe-web`
-- 分组：适合聊天前端场景的分组
-- 模型限制：先只开放要给 Lobe Chat 用的少数模型
-- 额度：保证足够完成首次验证
-
-### 2. 自部署版设置环境变量
-
-如果你是 Docker、Docker Compose 或其他自部署方式，优先配置：
+### 2. 在自部署环境中设置变量
 
 ```bash
 OPENAI_API_KEY=<YOUR_JINGXING_TOKEN>
 OPENAI_PROXY_URL=https://api.jingxing.uk/v1
 ```
 
-如果你的部署还需要显式控制模型列表，也可以继续补模型相关变量，但第一轮不建议把事情做得太复杂。
+首次接入建议仅保留以上最小变量组合，避免同时引入过多历史配置或其他 provider 设置。
 
-### 3. 进入 Lobe Chat 后只验证一个模型
+### 3. 首次仅验证一个模型
 
-第一轮不要一口气塞很多模型。  
-更稳的做法是：
+启动或重启服务后，建议仅选择一个模型进行验证，确认模型列表、令牌权限与主链路均正常后，再扩展更多模型或能力。
 
-- 先确认 OpenAI provider 已启用
-- 先确认模型列表能看到目标模型
-- 只选一个模型发起第一条对话
+## 模型选择建议
 
-## 推荐模型选择思路
+Lobe Chat 作为通用聊天前端，建议优先考虑：
 
-Lobe Chat 更像通用聊天前端，所以模型选择优先级通常是：
+1. 对话稳定性
+2. 响应速度
+3. 长上下文表现
+4. 成本可控性
 
-1. 对话稳定
-2. 响应速度适中
-3. 长上下文表现可接受
-4. 成本在你的预期内
+首次接入不建议直接选择高成本模型。
 
-如果只是验证接入，不要先拿高成本模型做第一步。
+## 验证方法
 
-## 为什么推荐单独给 Lobe Chat 发令牌
+建议按以下顺序完成验证：
 
-因为它是一个长期在线的聊天前端，不像单次命令行请求那么简单。  
-它可能持续保存会话、频繁切换模型、被多人使用，或者接到不同浏览器会话。
-
-如果和其他客户端共用令牌，后面很难判断：
-
-- 到底是谁在消费额度
-- 到底哪个客户端在报错
-- 到底哪个模型在被频繁调用
-
-## 最短验证路径
-
-1. 先用命令行跑通 `GET /models`
+1. 在命令行中使用当前令牌执行 `GET /v1/models`
 2. 配置 `OPENAI_API_KEY` 与 `OPENAI_PROXY_URL`
 3. 启动或重启 Lobe Chat
-4. 在界面里只选一个模型
-5. 发起一条最简单的对话
-
-例如：
-
-- “用一句话介绍井陉”
-- “帮我整理这段文本重点”
+4. 在界面中仅选择一个模型
+5. 发起一次简单对话请求
 
 ## 常见问题
 
-### 模型列表不对
+### 模型列表异常
 
-优先检查：
+建议优先检查：
 
-- 当前是不是还在用旧环境变量
-- 当前 token 是否限制了模型
-- 当前分组是否开放该模型
+- 当前环境变量是否已生效
+- 当前令牌是否限制了模型
+- 当前分组是否开放目标模型
 
-### 页面能打开，但聊天失败
+### 页面可访问，但聊天失败
 
-优先检查：
+建议排查：
 
-- `OPENAI_PROXY_URL` 是否写成了 `https://api.jingxing.uk/v1`
-- `OPENAI_API_KEY` 是否是当前有效令牌
-- 当前模型是否已验证可用
+- `OPENAI_PROXY_URL` 是否准确填写为 `https://api.jingxing.uk/v1`
+- `OPENAI_API_KEY` 是否为当前有效令牌
+- 当前模型是否已经完成独立验证
 
-### 自部署版更新后行为变了
+### 自部署升级后行为变化
 
-这通常不是井陉专属问题，而是前端版本、provider 设置或环境变量处理方式变化。  
-出现这种情况时，先用最小变量组合重新验证，不要一次性带太多历史配置。
+此类问题通常与前端版本、provider 配置方式或环境变量处理变化有关。建议先使用最小变量组合重新验证，再逐步恢复其他配置。
 
-## 推荐实践
+## 实践建议
 
-- 自部署版优先
-- 先只用 OpenAI provider 路径
-- 先少量模型、少量变量
-- 给 Lobe Chat 单独发令牌
-- 出问题先回命令行验证 API
+- 优先使用自部署版
+- 首先完成 OpenAI provider 主链路验证
+- 为 Lobe Chat 单独签发令牌
+- 首次仅配置少量模型
+- 出现问题时，优先以命令行请求排除 API 侧问题
 
 ## 官方参考
 
 - [LobeHub Docs: Using OpenAI API Key in LobeChat](https://lobehub.com/docs/usage/providers/openai)
 - [LobeHub Docs: Self-hosting Model Provider Environment Variables](https://lobehub.com/docs/self-hosting/environment-variables/model-provider/)
 
-## 下一步
+## 继续阅读
 
-- 想接桌面多模型客户端：看[Cherry Studio](/docs/integrations/cherry-studio)
-- 想接更通用的自部署 Web 前端：看[Open WebUI](/docs/integrations/open-webui)
-- 想排查模型、令牌和超时问题：看[错误与重试](/docs/platform/errors-and-retries)
+- [Cherry Studio](/docs/integrations/cherry-studio)
+- [Open WebUI](/docs/integrations/open-webui)
+- [错误与重试](/docs/platform/errors-and-retries)

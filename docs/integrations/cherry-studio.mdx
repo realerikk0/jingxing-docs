@@ -1,162 +1,134 @@
 ---
 title: "Cherry Studio"
-description: "如何在 Cherry Studio 中配置井陉"
+description: "在 Cherry Studio 中通过自定义 OpenAI 服务商接入井陉"
 sidebar_position: 4
 ---
 
 # Cherry Studio
 
-Cherry Studio 是井陉最适合优先支持的桌面客户端之一，因为它本身就支持多服务商聚合，也支持通过自定义服务商接入 OpenAI 兼容接口。  
-对井陉来说，最稳妥的方式不是强行塞进某个固定官方服务商，而是直接按 **自定义服务商 + OpenAI 类型** 来配置。
+Cherry Studio 支持通过自定义服务商接入 OpenAI 兼容接口，适合将井陉作为桌面客户端的统一模型入口。对于井陉而言，推荐采用“自定义服务商 + OpenAI 类型”的方式配置，而非混入已有官方服务商配置。
 
-## 先说结论
+## 适用场景
 
-- 想最快接入桌面客户端：Cherry Studio 很适合
-- 想把井陉和其他官方服务商区分开：优先用自定义服务商
-- 想减少后续排查难度：给 Cherry Studio 单独发令牌
-- 想少踩模型名问题：先只加 1 到 2 个你已经验证可用的模型
+- 需要快速完成桌面客户端接入
+- 需要将井陉与官方 OpenAI 等服务商清晰区分
+- 需要在同一桌面客户端中管理多个用途不同的服务实例
 
-## 接入前准备
+## 前置条件
 
-你需要先准备：
+开始配置前，请准备以下信息：
 
 - Base URL：`https://api.jingxing.uk/v1`
-- API Key：一个专门给 Cherry Studio 使用的井陉令牌
-- 模型名：当前分组下已经验证过的模型
+- API Key：专门用于 Cherry Studio 的井陉令牌
+- 模型名称：当前分组下已经验证可用的模型
 
-推荐不要直接复用：
+建议避免直接复用以下令牌：
 
-- Cursor 的同一个令牌
-- 团队共享生产令牌
-- 没有模型限制的大权限令牌
+- Cursor 使用中的令牌
+- 团队生产服务令牌
+- 未限制模型范围的大权限令牌
 
-## 为什么推荐“自定义服务商”
+## 配置原则
 
-Cherry Studio 官方文档已经提供了自定义服务商能力，而且允许你在新增服务商时选择 `OpenAI`、`Gemini`、`Anthropic`、`Azure OpenAI` 等类型，并手动填写 API 地址和 API Key。
+推荐使用自定义服务商的原因如下：
 
-对井陉来说，这种方式的好处是：
+- 服务商名称可以直接标识为 `Jingxing`
+- 可以与已有官方服务商配置分离
+- 后续切换令牌、模型和分组时更易于维护
 
-- 名称可以直接写成 `Jingxing`
-- 不会和你已经配置的官方 OpenAI 服务混在一起
-- 后续切换令牌、分组和模型时更清晰
+## 配置步骤
 
-## 推荐接入方式
+### 1. 在井陉创建 Cherry Studio 专用令牌
 
-### 1. 先在井陉创建一个 Cherry Studio 专用令牌
+建议配置如下：
 
-推荐配置：
+- 名称：如 `cherry-desktop`、`cherry-team`
+- 分组：适合桌面对话的聊天分组
+- 模型限制：仅开放计划在 Cherry Studio 中使用的模型
+- 额度：覆盖验证与日常使用需求
 
-- 名称：`cherry-desktop` 或 `cherry-team`
-- 分组：适合桌面对话场景的分组
-- 模型限制：只开放你准备在 Cherry Studio 中使用的模型
-- 额度：先保证足够完成初次验证
+### 2. 在 Cherry Studio 中新增自定义服务商
 
-### 2. 在 Cherry Studio 里新增自定义服务商
-
-按 Cherry Studio 官方文档的自定义服务商流程：
+按照 Cherry Studio 官方文档的自定义服务商流程：
 
 1. 新增服务商
 2. 服务商类型选择 `OpenAI`
-3. 服务商名称填写 `Jingxing` 或你自己的命名
+3. 服务商名称填写 `Jingxing` 或组织内部标准命名
 
-### 3. 填写 API Key 和 API 地址
+### 3. 填写接口地址与令牌
 
-新增后继续补详细配置：
+在服务商配置中填写：
 
-- API Key：你的井陉令牌
+- API Key：井陉令牌
 - API 地址：`https://api.jingxing.uk/v1`
 
-如果当前版本有“Check / 检查”按钮，建议先点一次做连通性验证。
+如当前版本提供检查或测试按钮，建议保存后先执行一次连通性验证。
 
 ### 4. 手动添加模型
 
-Cherry Studio 的使用体验很大程度取决于你添加的模型是否准确。  
-第一轮建议只添加少量模型，例如：
+首次接入建议只添加少量已经验证可用的模型，例如一个常规聊天模型和一个备用模型。待主链路稳定后，再逐步扩充模型列表。
 
-- 一个通用聊天模型
-- 一个你已经在命令行验证过的模型
+## 多用途配置建议
 
-不要一开始就把一长串模型全加进去，否则一旦模型名或权限有问题，排查成本会直线上升。
-
-## 多分组怎么区分
-
-如果你打算在 Cherry Studio 里同时使用多个用途的令牌，最清晰的做法不是“同一个服务商来回改 key”，而是：
-
-- 开发环境一个服务商
-- 生产观察一个服务商
-- 高成本模型一个服务商
-
-也就是说，你可以直接在 Cherry Studio 里建多个自定义服务商实例，例如：
+若 Cherry Studio 同时用于开发、生产观察或高成本模型测试，建议直接创建多个服务商实例，而不是频繁修改同一配置。例如：
 
 - `Jingxing Dev`
 - `Jingxing Prod`
 - `Jingxing HighCost`
 
-这样比频繁改同一个服务商配置更安全，也更适合长期使用。
+该方式更有利于长期维护，也便于分离不同用途的令牌与分组。
 
-## 最短验证路径
+## 验证方法
 
-1. 先在命令行用该 token 跑通 `GET /models`
-2. 在 Cherry Studio 中新增 `Jingxing`
-3. 填好 API Key 和 Base URL
-4. 只添加一个模型
-5. 发起一条最简单的对话
+建议按以下顺序完成验证：
 
-例如：
-
-- “用一句话介绍井陉”
-- “解释这段文本的重点”
-- “帮我整理一个需求清单”
+1. 在命令行中使用当前令牌执行 `GET /v1/models`
+2. 在 Cherry Studio 中新增 `Jingxing` 服务商
+3. 填写 API Key 与 Base URL
+4. 手动添加一个已验证模型
+5. 发起一次简单对话请求
 
 ## 常见问题
 
-### 检查通过了，但聊天还是失败
+### 服务商可新增，但模型不可用
 
-优先检查：
+建议优先检查：
 
-- 当前实际选择的模型是否真的可用
-- 当前令牌是否限制了模型
-- Cherry Studio 是否保存了旧模型配置
+- 模型是否已手动添加
+- 模型名称是否与井陉当前可见模型一致
+- 当前分组是否开放该模型
 
-### 服务商能加进去，但模型不可见
+### 认证失败
 
-通常是以下原因之一：
+建议依次检查：
 
-- 模型没有手动添加
-- 模型名拼写不一致
-- 当前分组不开放该模型
+- API Key 是否完整复制
+- API 地址是否准确填写为 `https://api.jingxing.uk/v1`
+- 当前令牌是否过期、停用或无效
 
-### 一直报 401
+### 响应超时或失败率偏高
 
-优先检查：
+建议检查：
 
-- API Key 是否复制完整
-- API 地址是否是 `https://api.jingxing.uk/v1`
-- 当前令牌是否过期、停用或额度不足
+- 当前分组是否偏向低成本而非稳定性
+- 当前模型是否适合长上下文场景
+- Cherry Studio 是否存在频繁重试
 
-### 一直超时或偶发失败
+## 实践建议
 
-优先检查：
-
-- 当前分组是否更偏低成本
-- 当前模型是否不适合长上下文
-- Cherry Studio 是否在高频重试
-
-## 推荐实践
-
-- 给 Cherry Studio 单独发令牌
-- 先用自定义服务商，不要和官方 OpenAI 配置混用
-- 模型先少后多
-- 一个用途一个服务商实例
-- 出问题先回命令行验证 API，而不是先怀疑客户端本身
+- 为 Cherry Studio 单独签发令牌
+- 使用自定义服务商而非混用官方服务商配置
+- 首次仅配置少量模型
+- 不同用途使用不同服务商实例
+- 出现问题时，优先以命令行请求验证 API 链路
 
 ## 官方参考
 
 - [Cherry Studio: Custom Providers](https://docs.cherry-ai.com/docs/en-us/pre-basic/providers/zi-ding-yi-fu-wu-shang)
 - [Cherry Studio: OpenAI Provider](https://docs.cherry-ai.com/docs/en-us/pre-basic/providers/openai)
 
-## 下一步
+## 继续阅读
 
-- 想先把 API 自己跑通：继续看[API 快速开始](/docs/getting-started/api-quickstart)
-- 想控制客户端对应令牌：继续看[令牌管理](/docs/platform/token-management)
-- 想排查 401、429 和超时：继续看[错误与重试](/docs/platform/errors-and-retries)
+- [API 快速开始](/docs/getting-started/api-quickstart)
+- [令牌管理](/docs/platform/token-management)
+- [错误与重试](/docs/platform/errors-and-retries)

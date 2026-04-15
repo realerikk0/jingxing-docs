@@ -1,139 +1,116 @@
 ---
 title: "NextChat"
-description: "如何在 NextChat 中配置井陉"
+description: "在 NextChat 中通过 OpenAI 兼容配置接入井陉"
 sidebar_position: 7
 ---
 
 # NextChat
 
-如果你想自部署一个轻量、上手快、跨平台的聊天前端，并让底层模型统一走井陉，NextChat 是一个非常适合的选择。
+NextChat 是一个轻量、自部署友好的聊天前端，适合通过 OpenAI 兼容方式接入井陉。对于井陉而言，推荐优先使用自部署环境变量方案完成接入，而不是在首轮接入时同时混用多个 provider。
 
-和井陉配合时，最稳的路线不是先研究复杂多 provider，而是先把 **OpenAI 兼容路径** 跑通。
+## 适用场景
 
-## 先说结论
+- 需要轻量级、自部署的聊天前端
+- 需要通过 OpenAI 兼容接口接入井陉
+- 需要快速建立聊天主链路
 
-- 想要最稳：优先用自部署的环境变量方式接井陉
-- 想要最快：先只配 `OPENAI_API_KEY` 和 `BASE_URL`
-- 想少踩坑：先只验证一个模型
-- 想减少后续排障成本：给 NextChat 单独发令牌
+## 前置条件
 
-## 接入前准备
-
-先准备：
+请先准备以下信息：
 
 - Base URL：`https://api.jingxing.uk/v1`
-- API Key：一个专门给 NextChat 使用的井陉令牌
-- 模型名：至少一个已经验证可用的模型
+- API Key：专门用于 NextChat 的井陉令牌
+- 模型名称：至少一个已经验证可用的模型
 
-## 为什么推荐先走 OpenAI 路径
+## 推荐接入方式
 
-根据 NextChat 官方仓库和文档，NextChat 自部署最基础、最稳定的接法就是通过：
+根据 NextChat 官方文档，自部署场景下最基础且稳定的接入方式为使用以下环境变量：
 
 - `OPENAI_API_KEY`
 - `BASE_URL`
 
-来配置 OpenAI 兼容接口。
+井陉优先提供 OpenAI 兼容接口，因此该路径与 NextChat 的默认配置方式匹配度较高。
 
-井陉本身就优先提供 OpenAI 兼容接口，所以这条路径天然最顺。
+## 配置步骤
 
-## 推荐接入方式
+### 1. 在井陉侧创建 NextChat 专用令牌
 
-### 1. 先在井陉创建一个 NextChat 专用令牌
+建议配置如下：
 
-推荐配置：
+- 名称：如 `nextchat-web`
+- 分组：适合 Web 聊天场景的通用分组
+- 模型限制：仅开放计划在 NextChat 中使用的模型
+- 额度：覆盖验证与日常使用需求
 
-- 名称：`nextchat-web`
-- 分组：通用聊天分组或适合 Web 前端的分组
-- 模型限制：只开放你打算在 NextChat 中使用的模型
-- 额度：先给足够验证的额度
-
-### 2. 自部署时配置环境变量
-
-最小可用配置通常是：
+### 2. 在部署环境中设置变量
 
 ```bash
 OPENAI_API_KEY=<YOUR_JINGXING_TOKEN>
 BASE_URL=https://api.jingxing.uk/v1
 ```
 
-如果你已经在用 Docker、Vercel 或 `.env.local`，本质上都是把这两项放进去。
+无论使用 Docker、Vercel 还是 `.env.local`，本质上都是为 NextChat 提供以上最小配置。
 
-### 3. 如果当前版本支持界面里的 custom endpoint
+### 3. 仅验证一个模型
 
-NextChat 文档在一些 provider 页面也展示了 custom endpoint 的配置方式。  
-如果你当前版本支持在设置页覆盖 OpenAI endpoint，也可以在 UI 中填：
+部署完成后，建议仅选择一个已验证可用的模型执行首次对话请求，确认主链路稳定后再扩展更多模型。
+
+## 可选的界面配置路径
+
+若当前版本支持在界面中覆盖 OpenAI endpoint，也可以在设置中填写：
 
 - API Key：井陉令牌
-- OpenAI Endpoint / Base URL：`https://api.jingxing.uk/v1`
+- Base URL：`https://api.jingxing.uk/v1`
 
-但长期看，**自部署环境变量** 仍然是更稳的主路径。
+但从维护角度看，自部署环境变量仍然是更推荐的长期方案。
 
-## 推荐模型选择思路
+## 验证方法
 
-NextChat 更像通用聊天前端，所以优先级通常是：
+建议按以下顺序完成验证：
 
-1. 聊天稳定
-2. 响应速度适中
-3. 长对话可接受
-4. 成本合理
-
-如果只是验证接入，不要一开始就用高成本模型。
-
-## 最短验证路径
-
-1. 先用命令行跑通 `GET /models`
-2. 配好 `OPENAI_API_KEY` 和 `BASE_URL`
+1. 在命令行中使用当前令牌执行 `GET /v1/models`
+2. 配置 `OPENAI_API_KEY` 与 `BASE_URL`
 3. 重启或重新部署 NextChat
-4. 在 UI 中选择一个模型
-5. 发起第一条最简单的对话
-
-例如：
-
-- “用一句话介绍井陉”
-- “把这段文本总结成三点”
+4. 在界面中选择一个模型
+5. 发起一次简单对话请求
 
 ## 常见问题
 
-### 页面能打开，但模型不对
+### 模型列表异常
 
-优先检查：
+建议优先检查：
 
-- 当前 token 是否限制了模型
+- 当前令牌是否限制了模型
 - 当前分组是否开放这些模型
-- `BASE_URL` 是否真的指向 `https://api.jingxing.uk/v1`
+- `BASE_URL` 是否准确指向 `https://api.jingxing.uk/v1`
 
-### 一直 401
+### 认证失败
 
-优先检查：
+建议依次检查：
 
-- `OPENAI_API_KEY` 是否复制完整
-- token 是否过期或停用
-- NextChat 是否还在使用旧环境变量
+- `OPENAI_API_KEY` 是否完整复制
+- 当前令牌是否过期、停用或无效
+- NextChat 是否仍在使用旧环境变量
 
-### 仍然在打 OpenAI 官方而不是井陉
+### 请求仍然发送到 OpenAI 官方地址
 
-这通常不是井陉问题，而是：
+此类问题通常说明：
 
-- `BASE_URL` 没生效
-- 服务没有重启
-- 当前部署环境没有正确读取变量
+- `BASE_URL` 未生效
+- 服务未重启
+- 当前部署环境未正确加载变量
 
-### 模型很多，但体验很乱
+### 模型过多导致体验混乱
 
-这一般不是“模型越多越好”，而是你没把用途和默认模型收好。  
-更稳的做法是：
+建议先保留少量模型，并明确默认模型，再逐步扩展。
 
-- 先只保留少量模型
-- 先有一个清晰默认模型
-- 先让主路径稳定，再逐步扩
+## 实践建议
 
-## 推荐实践
-
-- 给 NextChat 单独发令牌
-- 优先用自部署环境变量接井陉
-- 模型先少后多
-- 先验证主链路，不要一上来混太多 provider
-- 出问题先用命令行排除 API 侧问题
+- 为 NextChat 单独签发令牌
+- 优先使用环境变量接入井陉
+- 首次仅配置少量模型
+- 先验证主链路，再扩展其他配置
+- 出现问题时，优先以命令行请求验证 API 链路
 
 ## 官方参考
 
@@ -141,8 +118,8 @@ NextChat 更像通用聊天前端，所以优先级通常是：
 - [NextChat Docs: OpenAI Provider](https://docs.nextchat.dev/models/openai)
 - [NextChat Docs: custom endpoint example](https://docs.nextchat.dev/models/groq)
 
-## 下一步
+## 继续阅读
 
-- 想接更完整的自部署 Web 前端：看[Open WebUI](/docs/integrations/open-webui)
-- 想接桌面客户端：看[Cherry Studio](/docs/integrations/cherry-studio)
-- 想排查 401、403、429：看[HTTP 状态码总览](/docs/faq/http-status-codes)
+- [Open WebUI](/docs/integrations/open-webui)
+- [Cherry Studio](/docs/integrations/cherry-studio)
+- [HTTP 状态码总览](/docs/faq/http-status-codes)

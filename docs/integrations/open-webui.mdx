@@ -1,160 +1,115 @@
 ---
 title: "Open WebUI"
-description: "如何把 Open WebUI 接到井陉"
+description: "在 Open WebUI 中通过 OpenAI 兼容接口接入井陉"
 sidebar_position: 6
 ---
 
 # Open WebUI
 
-Open WebUI 是井陉很值得支持的一类前端，因为它官方就支持 **OpenAI-compatible API** 接入，而且能把聊天、任务模型、RAG、图像、音频等配置拆开。  
-如果你的目标是“自部署一个统一 AI 前端，并把底层能力都挂到井陉上”，Open WebUI 会比很多轻量客户端更完整。
+Open WebUI 原生支持 OpenAI-compatible API，适合作为井陉的自部署 Web 前端入口。其优势在于可以将聊天、RAG、图像和音频等能力分层管理，因此适合需要逐步扩展功能的团队环境。
 
-## 先说结论
+## 适用场景
 
-- 想要最清晰的 OpenAI 兼容接入路径：Open WebUI 很合适
-- 想做团队自部署前端：它比轻量桌面客户端更适合
-- 想少踩坑：先只接聊天主链路，再逐步扩图像、Embedding、音频
-- 想减少混乱：给 Open WebUI 单独发令牌
+- 需要统一的自部署 Web 前端
+- 需要通过 OpenAI 兼容方式接入井陉
+- 需要后续扩展 RAG、图像或音频能力
 
-## 接入前准备
+## 前置条件
 
-先准备好这三项：
+请先准备以下信息：
 
 - Base URL：`https://api.jingxing.uk/v1`
-- API Key：一个专门给 Open WebUI 使用的井陉令牌
-- 模型名：至少一个已经验证可用的模型
+- API Key：专门用于 Open WebUI 的井陉令牌
+- 模型名称：至少一个已经验证可用的模型
 
-## Open WebUI 为什么适合井陉
+## 配置原则
 
-根据 Open WebUI 官方文档，它原生支持连接 OpenAI-compatible API，而且既可以通过环境变量配置，也可以在 Admin Panel 里配置。
+Open WebUI 的推荐接入顺序为：
 
-这对井陉非常友好，因为：
+1. 先建立聊天主链路
+2. 再扩展 RAG / Embedding
+3. 最后扩展图像与音频能力
 
-- 井陉本身优先提供 OpenAI 兼容接口
-- Open WebUI 的 provider 配置足够明确
-- 后续可以继续扩到 RAG、图像、音频能力
+该顺序有助于将主链路验证与扩展能力验证分开处理，降低排查复杂度。
 
-## 推荐接入顺序
+## 配置步骤
 
-### 第 1 步：先只接聊天主链路
+### 1. 在井陉侧创建 Open WebUI 专用令牌
 
-先别一上来就把 RAG、图像、音频、TTS、STT 全开。  
-第一轮最稳的方式是只配置核心聊天连接：
+建议配置如下：
+
+- 名称：如 `openwebui-web`
+- 分组：适合通用聊天或生产前端的分组
+- 模型限制：首次仅开放聊天所需模型
+- 额度：覆盖验证与日常使用需求
+
+### 2. 通过环境变量配置聊天主链路
 
 ```bash
 OPENAI_API_BASE_URL=https://api.jingxing.uk/v1
 OPENAI_API_KEY=<YOUR_JINGXING_TOKEN>
 ```
 
-如果你是通过 Admin Panel 配置，也同样先只填：
+如通过管理面板配置，也建议首次仅填写 Base URL 与 API Key，不建议在首轮验证时同时配置图像、音频或 RAG 相关参数。
 
-- Base URL
-- API Key
+### 3. 仅验证一个模型
 
-### 第 2 步：确认模型已经出现
+启动或重启服务后，先确认模型列表中出现目标模型，并仅使用一个模型发起首次对话请求。
 
-启动或重启后，先检查：
-
-- 模型列表里是否出现你期望的模型
-- 当前令牌是否真的有权限看到这些模型
-
-### 第 3 步：只验证一个模型
-
-第一轮只选一个最明确可用的模型，先发一条最简单的对话。
-
-例如：
-
-- “用一句话介绍井陉”
-- “总结下面这段需求”
-
-## 如果要继续扩展更多能力
-
-Open WebUI 的强项之一，是它可以把不同能力拆开单独配置。
+## 扩展能力说明
 
 ### RAG / Embedding
 
-如果你后面要接知识库或检索向量能力，可以再单独配置 RAG 的 OpenAI-compatible endpoint 和 key。  
-但建议在聊天主链路稳定之后再开。
+在聊天主链路稳定后，可单独扩展向量化与检索链路。扩展前建议先确认井陉当前分组与模型中已开放相应 Embedding 能力。
 
-### 图片能力
+### 图像能力
 
-如果你的井陉分组和模型已经开放图像生成能力，可以再单独补：
-
-- 图像生成 engine
-- 图像生成 endpoint
-- 图像生成 key
+若需要在 Open WebUI 中启用图像生成，应先确认当前分组中已开放图像模型，再配置相应 endpoint 与 key。
 
 ### 音频能力
 
-TTS / STT 同理。  
-先确认井陉当前是否真的开放相应模型，再决定是否在 Open WebUI 中启用。
+音频能力同样建议在聊天主链路稳定后再单独启用，并先完成独立的 TTS / STT 接口验证。
 
-## 为什么建议给 Open WebUI 单独发令牌
+## 验证方法
 
-因为它往往不是单一用途客户端，而是一个持续运行的 Web 前端。  
-它可能同时承载：
+建议按以下顺序完成验证：
 
-- 聊天
-- 任务模型
-- RAG
-- 图像
-- 音频
-
-如果把它和其他客户端共用令牌，你后面很难判断到底是哪一块在消耗额度。
-
-## 最短验证路径
-
-1. 命令行先跑通 `GET /models`
-2. 只配置 `OPENAI_API_BASE_URL` 和 `OPENAI_API_KEY`
+1. 在命令行中使用当前令牌执行 `GET /v1/models`
+2. 配置 `OPENAI_API_BASE_URL` 与 `OPENAI_API_KEY`
 3. 重启 Open WebUI
-4. 在界面里选一个模型
-5. 发起最简单的一条聊天请求
-
-如果这一步都还没稳定，不要继续往 RAG、图像或音频上叠复杂度。
+4. 在界面中选择一个模型
+5. 发起一次简单对话请求
 
 ## 常见问题
 
-### 模型没显示出来
+### 模型未显示
 
-优先检查：
+建议优先检查：
 
-- 当前 token 是否真的有模型权限
-- Base URL 是否写成了 `https://api.jingxing.uk/v1`
-- Open WebUI 是否还在使用旧配置
+- 当前令牌是否具备模型权限
+- Base URL 是否准确写为 `https://api.jingxing.uk/v1`
+- Open WebUI 是否仍在使用旧配置
 
-### 聊天能用，但图像或音频不行
+### 聊天可用，但图像或音频不可用
 
-这通常不代表聊天接法有问题，而是说明：
+此类问题通常说明图像或音频能力尚未开放，或尚未完成对应能力的独立配置，并不一定表示聊天接入存在问题。
 
-- 当前分组没开放对应能力
-- 当前模型本身不支持
-- 你还没单独配置该能力的 engine / endpoint / key
+### 认证失败或权限不足
 
-### 一直 401 或 403
-
-优先检查：
+建议依次检查：
 
 - API Key 是否有效
-- token 是否停用或过期
-- 当前分组是否开放目标模型
-- 来源限制是否误伤
+- 令牌是否过期或停用
+- 分组是否开放目标模型
+- 来源限制是否误伤当前环境
 
-### 多模型很多，但体验很乱
+## 实践建议
 
-这通常不是“模型越多越好”，而是你把太多用途塞进同一个前端了。  
-更推荐先控制好：
-
-- 默认模型
-- 分组
-- 令牌边界
-
-## 推荐实践
-
-- 先聊天，后扩展能力
-- 给 Open WebUI 单独发令牌
-- 少量模型起步
-- 先环境变量跑通，再考虑高级 UI 配置
-- 出问题先验证主链路，不要同时排查 5 种能力
+- 先完成聊天主链路验证
+- 为 Open WebUI 单独签发令牌
+- 首次仅配置少量模型
+- 扩展能力采用分阶段启用方式
+- 出现问题时，优先排除聊天主链路，再排查扩展功能
 
 ## 官方参考
 
@@ -162,8 +117,8 @@ TTS / STT 同理。
 - [Open WebUI: Starting with OpenAI-Compatible APIs](https://docs.openwebui.com/getting-started/quick-start/connect-a-provider/starting-with-openai-compatible)
 - [Open WebUI: Direct Connections](https://docs.openwebui.com/features/chat-conversations/direct-connections)
 
-## 下一步
+## 继续阅读
 
-- 想接更轻量的客户端：看[Cherry Studio](/docs/integrations/cherry-studio)
-- 想接更偏聊天产品形态的前端：看[Lobe Chat](/docs/integrations/lobe-chat)
-- 想排查连接和重试问题：看[错误与重试](/docs/platform/errors-and-retries)
+- [Lobe Chat](/docs/integrations/lobe-chat)
+- [Cherry Studio](/docs/integrations/cherry-studio)
+- [错误与重试](/docs/platform/errors-and-retries)
