@@ -15,7 +15,7 @@ const config: Config = {
   },
 
   // Set the production url of your site here
-  url: 'https://doc.jingixng.uk',
+  url: 'https://doc.jingxing.uk',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: '/',
@@ -108,7 +108,7 @@ const config: Config = {
           items: [
             {
               label: '自定义域名',
-              href: 'https://doc.jingixng.uk',
+              href: 'https://doc.jingxing.uk',
             },
           ],
         },
