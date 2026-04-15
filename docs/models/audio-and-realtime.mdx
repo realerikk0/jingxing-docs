@@ -1,43 +1,47 @@
 ---
 title: "音频与 Realtime"
-description: "先分清 TTS、转写、翻译和 Realtime，各自怎么接"
+description: "说明文本转语音、音频转录、音频翻译与 Realtime 接入路径"
 sidebar_position: 1
 ---
 
 # 音频与 Realtime
 
-这一页解决的是：
+井陉当前已提供文本转语音、音频转录、音频翻译与实时连接能力。本文用于说明不同能力对应的接口路径、最小请求和典型排查方向。
 
-**我现在要做语音或实时连接，到底该走哪个接口，第一次怎么验证最稳。**
+## 可用路径
 
-当前项目里已经明确暴露了这些能力：
+当前仓库已明确暴露以下能力：
 
 - `POST /v1/audio/speech`
 - `POST /v1/audio/transcriptions`
 - `POST /v1/audio/translations`
 - `GET /v1/realtime`
 
-## 先分清 4 条路
+## 能力划分
 
 ### 文本转语音
 
-把文字直接生成音频文件。  
-走的是 `POST /v1/audio/speech`。
+用于将文本生成音频文件，路径为：
+
+- `POST /v1/audio/speech`
 
 ### 音频转录
 
-把一段音频转成原语言文本。  
-走的是 `POST /v1/audio/transcriptions`。
+用于将音频转换为原语言文本，路径为：
+
+- `POST /v1/audio/transcriptions`
 
 ### 音频翻译
 
-把音频翻译成英文文本。  
-走的是 `POST /v1/audio/translations`。
+用于将音频翻译为英文文本，路径为：
+
+- `POST /v1/audio/translations`
 
 ### Realtime
 
-通过 WebSocket 做实时对话或实时语音链路。  
-走的是 `GET /v1/realtime`，但连接时要用 `wss://`。
+用于通过 WebSocket 建立实时对话或实时语音链路，路径为：
+
+- `GET /v1/realtime`
 
 ## 最小请求：文本转语音
 
@@ -53,7 +57,7 @@ curl https://api.jingxing.uk/v1/audio/speech \
   --output speech.mp3
 ```
 
-这条成功时通常直接返回音频文件流，不是 JSON。
+该接口成功时通常直接返回音频流，而不是 JSON。
 
 ## 最小请求：音频转录
 
@@ -65,13 +69,11 @@ curl https://api.jingxing.uk/v1/audio/transcriptions \
   -F "response_format=json"
 ```
 
-第一次调试时，建议就用：
+首次验证建议使用以下输入条件：
 
 - 短音频
 - 清晰人声
 - `response_format=json`
-
-这样最容易判断接口是不是正常。
 
 ## 最小请求：音频翻译
 
@@ -82,62 +84,58 @@ curl https://api.jingxing.uk/v1/audio/translations \
   -F "model=whisper-1"
 ```
 
-如果你只是想做普通听写，不要误走翻译接口。  
-它更适合“把音频翻成英文文本”。
+如目标是普通转写，应优先使用 `transcriptions`，而非 `translations`。
 
-## Realtime 怎么理解
+## Realtime 连接说明
 
-`/v1/realtime` 不是普通 HTTP 拉 JSON。  
-它是一个 WebSocket 端点，OpenAPI 里也明确写了，连接示例类似：
+`/v1/realtime` 为 WebSocket 端点，不是普通的 HTTP JSON 接口。连接示例形式如下：
 
 ```text
 wss://api.jingxing.uk/v1/realtime?model=gpt-4o-realtime-preview
 ```
 
-如果你现在只是想先验证实时链路，不要先上整套前端语音房间。  
-先做一件事：
+建立连接时，应同时确认：
 
-- 确认你的客户端真的在用 WebSocket
-- 确认 Bearer Token 和 query 参数里的 `model` 都带了
+- 客户端使用的是 WebSocket 协议
+- Bearer Token 已正确携带
+- `model` 查询参数已填写
 
-## 最常见的 6 个问题
+## 常见问题
 
-### 1. 把 TTS 当成 JSON 接口
+### 将文本转语音接口误当作 JSON 接口处理
 
-`/v1/audio/speech` 成功时会返回音频流，不是常规 JSON。
+`/v1/audio/speech` 成功时返回音频流，调用侧应按文件或流式音频处理，而非 JSON 解析。
 
-### 2. 转录时没用 `multipart/form-data`
+### 转录接口未使用 `multipart/form-data`
 
-上传音频文件这类接口最容易在这里翻车。
+上传音频文件时，应确认请求体格式正确。
 
-### 3. 文件太大或太长，第一次就难排错
+### 首次验证即使用较长音频
 
-第一次验证链路时，短音频永远更稳。
+长音频会增加排查复杂度。建议先以短音频建立主链路。
 
-### 4. 普通转写和翻译搞反了
+### 混淆转写与翻译
 
-如果你只想保留原语言内容，优先走 `transcriptions`。
+保留原语言内容时应使用 `transcriptions`；需要翻译成英文时再使用 `translations`。
 
-### 5. Realtime 用成了普通 HTTPS 请求
+### 将 Realtime 当作普通 HTTPS 接口调用
 
-这条必须按 WebSocket 思路来接。
+Realtime 接口必须通过 WebSocket 方式建立连接。
 
-### 6. 聊天模型能用，但音频模型没开放
+### 聊天能力可用但音频能力不可用
 
-这类问题和图片、视频一样，本质还是分组权限问题。
+此类问题通常与分组和模型权限有关，不应仅根据聊天能力状态作判断。
 
-## 推荐动作
+## 使用建议
 
-如果你现在刚开始接音频：
+建议按以下顺序验证音频相关能力：
 
-1. 先做一条 TTS
-2. 再做一条短音频转录
-3. 最后再碰 Realtime
+1. 先完成文本转语音验证
+2. 再完成短音频转录验证
+3. 最后验证 Realtime 连接
 
-因为 Realtime 一旦出问题，排查面会比普通 HTTP 大很多。
+## 继续阅读
 
-## 下一步
-
-- 你在做普通聊天：看[聊天](/docs/models/chat)
-- 你还在排鉴权和限流：看[HTTP 状态码总览](/docs/faq/http-status-codes)
-- 你想看所有 API 路径：看[API 概览](/docs/api-reference/overview)
+- [聊天](/docs/models/chat)
+- [HTTP 状态码总览](/docs/faq/http-status-codes)
+- [API 概览](/docs/api-reference/overview)
