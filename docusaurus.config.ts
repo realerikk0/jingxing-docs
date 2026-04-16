@@ -41,6 +41,7 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
+          sidebarCollapsed: false,
           editUrl:
             'https://github.com/realerikk0/jingxing-docs/tree/main/',
         },
