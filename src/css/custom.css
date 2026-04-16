@@ -28,3 +28,203 @@
   --ifm-color-primary-lightest: #4fddbf;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 }
+
+.theme-doc-sidebar-item-link.menu__list-item[class*='sidebar-icon-'],
+.theme-doc-sidebar-item-category.menu__list-item[class*='sidebar-icon-'] {
+  --sidebar-item-icon: "•";
+}
+
+.theme-doc-sidebar-item-link.menu__list-item[class*='sidebar-icon-'] > .menu__link::before,
+.theme-doc-sidebar-item-category.menu__list-item[class*='sidebar-icon-']
+  > .menu__list-item-collapsible
+  > .menu__link::before {
+  content: var(--sidebar-item-icon);
+  display: inline-block;
+  width: 1.25rem;
+  margin-right: 0.2rem;
+  color: currentColor;
+  opacity: 0.78;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.95em;
+}
+
+.sidebar-icon-intro {
+  --sidebar-item-icon: "◈";
+}
+
+.sidebar-icon-foundation {
+  --sidebar-item-icon: "▣";
+}
+
+.sidebar-icon-quickstart {
+  --sidebar-item-icon: "▸";
+}
+
+.sidebar-icon-api-quickstart {
+  --sidebar-item-icon: "⌁";
+}
+
+.sidebar-icon-overview {
+  --sidebar-item-icon: "≣";
+}
+
+.sidebar-icon-concepts {
+  --sidebar-item-icon: "◇";
+}
+
+.sidebar-icon-gateway {
+  --sidebar-item-icon: "⌗";
+}
+
+.sidebar-icon-playground {
+  --sidebar-item-icon: "▤";
+}
+
+.sidebar-icon-group-table {
+  --sidebar-item-icon: "⊞";
+}
+
+.sidebar-icon-group-price {
+  --sidebar-item-icon: "¤";
+}
+
+.sidebar-icon-create-token {
+  --sidebar-item-icon: "◉";
+}
+
+.sidebar-icon-auth {
+  --sidebar-item-icon: "◎";
+}
+
+.sidebar-icon-compat {
+  --sidebar-item-icon: "≈";
+}
+
+.sidebar-icon-api-overview {
+  --sidebar-item-icon: "⋯";
+}
+
+.sidebar-icon-token {
+  --sidebar-item-icon: "◌";
+}
+
+.sidebar-icon-billing {
+  --sidebar-item-icon: "¤";
+}
+
+.sidebar-icon-errors {
+  --sidebar-item-icon: "!";
+}
+
+.sidebar-icon-tools {
+  --sidebar-item-icon: "⌘";
+}
+
+.sidebar-icon-claude {
+  --sidebar-item-icon: "⌘";
+}
+
+.sidebar-icon-cursor {
+  --sidebar-item-icon: "⌲";
+}
+
+.sidebar-icon-codex {
+  --sidebar-item-icon: "⎇";
+}
+
+.sidebar-icon-cherry {
+  --sidebar-item-icon: "◔";
+}
+
+.sidebar-icon-lobe {
+  --sidebar-item-icon: "◒";
+}
+
+.sidebar-icon-webui {
+  --sidebar-item-icon: "▦";
+}
+
+.sidebar-icon-nextchat {
+  --sidebar-item-icon: "◫";
+}
+
+.sidebar-icon-image {
+  --sidebar-item-icon: "◧";
+}
+
+.sidebar-icon-image-gen {
+  --sidebar-item-icon: "◧";
+}
+
+.sidebar-icon-image-edit {
+  --sidebar-item-icon: "◨";
+}
+
+.sidebar-icon-video {
+  --sidebar-item-icon: "◨";
+}
+
+.sidebar-icon-video-gen {
+  --sidebar-item-icon: "▶";
+}
+
+.sidebar-icon-video-task {
+  --sidebar-item-icon: "◎";
+}
+
+.sidebar-icon-kling-text {
+  --sidebar-item-icon: "◭";
+}
+
+.sidebar-icon-kling-image {
+  --sidebar-item-icon: "◰";
+}
+
+.sidebar-icon-chat {
+  --sidebar-item-icon: "◍";
+}
+
+.sidebar-icon-chat-item {
+  --sidebar-item-icon: "◍";
+}
+
+.sidebar-icon-completions {
+  --sidebar-item-icon: "≡";
+}
+
+.sidebar-icon-embeddings {
+  --sidebar-item-icon: "◌";
+}
+
+.sidebar-icon-audio {
+  --sidebar-item-icon: "◉";
+}
+
+.sidebar-icon-audio-item {
+  --sidebar-item-icon: "◉";
+}
+
+.sidebar-icon-faq {
+  --sidebar-item-icon: "?";
+}
+
+.sidebar-icon-faq-general {
+  --sidebar-item-icon: "·";
+}
+
+.sidebar-icon-faq-billing {
+  --sidebar-item-icon: "¤";
+}
+
+.sidebar-icon-faq-http {
+  --sidebar-item-icon: "#";
+}
+
+.sidebar-icon-faq-errors {
+  --sidebar-item-icon: "!";
+}
+
+.sidebar-icon-faq-security {
+  --sidebar-item-icon: "◐";
+}
