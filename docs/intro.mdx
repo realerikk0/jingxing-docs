@@ -1,60 +1,50 @@
 ---
 title: "井陉doc"
-description: "井陉 API 网关与 AI 工作台的总览与阅读入口"
+description: "井陉 API 网关与 AI 工作台的产品介绍与接入入口"
 sidebar_position: 1
 ---
 
 # 井陉doc
 
-井陉是一个统一制式的 AI 网关与工作台，面向 API 调用、模型分组、令牌管理、额度计费与开发工具集成。你可以把它理解成一层稳定、可控、可审计的模型接入层：对外提供一致的调用方式，对内管理不同供应商、不同模型和不同分组策略。
+专线接入主流模型，无需科学上网。  
+井陉的目标很直接：**更快接入，更稳调用，更低迁移门槛。**
 
-## 适合谁
+## 🧭 井陉是什么
 
-- 希望通过统一接口接入多个模型系列的开发者
-- 需要按团队、项目或环境隔离令牌与额度的管理员
-- 想把 Cursor、Cherry Studio、Lobe Chat、Claude Code 等客户端统一接到同一套网关的人
+- “井陉”取自河北井陉。陉，指山脉中断形成的通道；井陉是太行八陉之一，自古连接山西高原与华北平原。
+- 井陉也留下了“背水一战”的典故。韩信出井陉、背水列阵，以险地破局；井陉因此有了“在狭路中打开通道”的意味。
+- 今天的井陉，致力于**模型同权**。最好的模型不该只属于少数人，我们希望大家都能用上最新、最好、最有生产力的 LLM。
 
-## 井陉能解决什么问题
+## ✨ 为什么选择井陉
 
-- 用统一的 `Base URL` 和鉴权方式接入多个模型
-- 用分组表达价格、稳定性、可用模型范围和团队策略
-- 把 API 令牌、模型权限、额度与调用审计放到同一处管理
-- 用一致的 OpenAI 兼容方式降低客户端迁移成本
+- 🌏 不需要翻山越岭，答案就在眼前
+- 🔐 安全、可靠，不用担心封号，不需要 KYC
+- 🚀 井陉科技，覆盖全球
 
-## 快速事实
+## 🚀 你会得到
+
+- 无需申请，直接调用最新的 LLM
+- 仅需一个 API Key，即可调用全部 LLM
+- 团队、环境、客户端流量按分组和令牌隔离
+- 成本、调用、消耗与审计集中查看
+
+## 🎯 适合谁
+
+- 想快速接入多个模型的开发者
+- 需要管理分组、令牌和额度的团队管理员
+- 想把 Cursor、Cherry Studio、Lobe Chat、Claude Code 等工具统一接到一处的人
+
+## 📌 基本信息
 
 - 控制台地址：`https://jingxing.uk`
 - API 基础地址：`https://api.jingxing.uk/v1`
 - 默认接入方式：OpenAI 兼容接口
 - 令牌形式：Bearer Token
-- 能力范围：聊天、Embedding、图片、视频、音频/Realtime，以及控制台管理接口
+- 能力范围：聊天、Embedding、图片、视频、音频 / Realtime，以及控制台管理接口
 
-## 你可以从这里开始
+## 👉 从这里开始
 
-- 新用户：先看[快速开始](/docs/getting-started/quickstart)
-- API 接入：先看[API 快速开始](/docs/getting-started/api-quickstart)
-- 控制台使用：先看[模型分组](/docs/platform/model-groups)与[令牌管理](/docs/platform/token-management)
-- 第三方客户端：先看[Claude Code](/docs/integrations/claude-code)
-
-## 推荐阅读顺序
-
-1. [快速开始](/docs/getting-started/quickstart)
-2. [API 快速开始](/docs/getting-started/api-quickstart)
-3. [模型分组](/docs/platform/model-groups)
-4. [令牌管理](/docs/platform/token-management)
-5. [Claude Code](/docs/integrations/claude-code)
-
-## 文档怎么读
-
-- `开始使用`：先把控制台、令牌和第一条请求跑通
-- `平台使用`：理解分组、价格、额度和错误处理
-- `模型能力`：查看不同能力的适用场景与限制
-- `API 参考`：查看公共接入方式与控制台接口说明
-- `开发工具`：把第三方客户端接到井陉
-- `FAQs`：排查高频错误和上线前后常见问题
-
-## 默认约定
-
-- 除非某页另有说明，本文档默认使用 OpenAI 兼容接口示例
-- 示例域名与地址以当前线上环境为准，正式可用模型、分组与价格以控制台展示为准
-- 涉及团队级或企业级接入时，优先推荐分组隔离、独立令牌和最小权限原则
+- 想先跑通请求：看[快速开始](/docs/getting-started/quickstart)
+- 想接 API：看[API 快速开始](/docs/getting-started/api-quickstart)
+- 想管分组和令牌：看[模型分组](/docs/platform/model-groups)与[令牌管理](/docs/platform/token-management)
+- 想接客户端：看[Claude Code](/docs/integrations/claude-code)或对应客户端页面
