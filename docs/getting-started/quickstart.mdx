@@ -99,7 +99,7 @@ curl "$JINGXING_BASE_URL/chat/completions" \
 
 常见原因包括：
 
-- 当前分组未开放该模型
+- 当前用户权限未开放该模型
 - 令牌设置了模型限制
 - 模型名称填写错误
 
@@ -107,12 +107,12 @@ curl "$JINGXING_BASE_URL/chat/completions" \
 
 建议检查：
 
-- 当前分组是否适合高并发或长输出场景
-- 当前模型是否适配当前分组
-- 是否需要切换到更稳定或更高配额的分组
+- 当前模型是否适合高并发或长输出场景
+- 当前请求是否携带过长上下文
+- 是否需要降低并发、缩短输出或稍后重试
 
 ## 继续阅读
 
-- [分组详细表格](/docs/platform/group-table)
+- [令牌管理](/docs/platform/token-management)
 - [API 快速开始](/docs/getting-started/api-quickstart)
 - [Cursor](/docs/integrations/cursor)

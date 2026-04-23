@@ -62,24 +62,6 @@ const sidebars: SidebarsConfig = {
         },
         {
           type: 'doc',
-          id: 'platform/group-table',
-          label: '分组详细表格',
-          className: 'sidebar-icon-group-table',
-        },
-        {
-          type: 'doc',
-          id: 'platform/group-price-differences',
-          label: '分组的特殊性及价格差异',
-          className: 'sidebar-icon-group-price',
-        },
-        {
-          type: 'doc',
-          id: 'platform/create-token-by-group',
-          label: '如何新建指定分组的令牌',
-          className: 'sidebar-icon-create-token',
-        },
-        {
-          type: 'doc',
           id: 'api-reference/authentication',
           label: '鉴权方式',
           className: 'sidebar-icon-auth',
