@@ -39,6 +39,12 @@ const sidebars: SidebarsConfig = {
           label: '核心概念',
           className: 'sidebar-icon-concepts',
         },
+        {
+          type: 'doc',
+          id: 'getting-started/one-million-tokens',
+          label: '1M Token 是多少',
+          className: 'sidebar-icon-token',
+        },
       ],
     },
     {
