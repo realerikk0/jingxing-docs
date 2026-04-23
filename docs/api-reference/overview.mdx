@@ -1,120 +1,127 @@
 ---
 title: "API 概览"
-description: "说明井陉 API 的类别划分与参考文档结构"
+description: "按能力说明井陉中转 API 的主要接口路径"
 sidebar_position: 6
 ---
 
 # API 概览
 
-本文用于说明井陉当前 API 的主要类别、各自适用场景，以及文档阅读入口与 OpenAPI 规范之间的关系。
+井陉 API 以 OpenAI 兼容接口为主，按能力划分为聊天、Responses、Embeddings、图片、视频和模型列表查询。
 
-## API 类别
+除特殊说明外，请求地址均以以下基础地址为前缀：
 
-井陉当前可分为以下两类 API：
+```txt
+https://api.jingxing.uk
+```
 
-### 中转 API
+## 聊天
 
-中转 API 主要用于模型能力接入，覆盖以下典型场景：
+聊天接口用于多轮对话、文本生成、代码生成、信息抽取、内容改写、结构化回答等场景。大多数客户端和 OpenAI 兼容 SDK 会优先使用该接口。
 
-- 聊天
-- Responses
-- Embeddings
-- 图片
-- 视频
-- 模型列表查询
+对应路径：
 
-当前仓库中同步的规范文件为：
-
-- `static/openapi/relay.json`
-
-### 后台管理 API
-
-后台管理 API 主要用于平台侧管理、控制台联动和自动化管理脚本，关注内容包括：
-
-- 用户
-- 分组
-- 模型
-- 渠道
-- 配置
-- 登录、注册与状态信息
-
-当前仓库中同步的规范文件为：
-
-- `static/openapi/api.json`
-
-## 阅读建议
-
-### 面向普通使用者
-
-如目标是接入模型、验证接口或接入客户端，建议优先阅读中转 API 相关文档。
-
-### 面向平台管理或系统联动
-
-如目标是进行控制台二次开发、平台联动或自动化管理，建议进一步阅读后台管理 API 相关内容。
-
-## 中转 API 中的高频路径
-
-根据当前仓库同步的 `relay.json`，建议优先关注以下路径：
-
-- `GET /v1/models`
 - `POST /v1/chat/completions`
+
+常见用途：
+
+- 普通问答
+- 多轮上下文对话
+- 代码解释与生成
+- 文档总结
+- JSON 或结构化内容生成
+
+## Responses
+
+Responses 接口用于 OpenAI Responses 风格的模型调用，适合需要更统一响应结构、工具调用、推理流程或更现代 OpenAI 接口形态的场景。
+
+对应路径：
+
 - `POST /v1/responses`
+- `POST /v1/responses/compact`
+
+常见用途：
+
+- 新版 OpenAI 风格应用接入
+- 多轮任务处理
+- 工具调用与复杂推理流程
+- 长对话压缩与上下文整理
+
+## Embeddings
+
+:::warning 暂未开放
+Embeddings 能力目前暂未开放。页面保留接口路径用于后续接入说明，实际可用状态以控制台和当前分组权限为准。
+:::
+
+Embeddings 接口用于将文本转换为向量，常见于搜索、推荐、相似度匹配、知识库和 RAG 场景。
+
+对应路径：
+
 - `POST /v1/embeddings`
+- `POST /v1/engines/{model}/embeddings`
+
+常见用途：
+
+- 文档向量化
+- 语义搜索
+- 相似问题匹配
+- 知识库检索
+- RAG 检索增强生成
+
+## 图片
+
+图片接口用于生成图片或基于已有图片进行编辑。适合产品配图、创意素材、视觉草图、封面图和图像修改等场景。
+
+对应路径：
+
 - `POST /v1/images/generations`
 - `POST /v1/images/edits`
+
+常见用途：
+
+- 文生图
+- 图片局部编辑
+- 风格化生成
+- 视觉素材批量生成
+- 营销图、封面图、示意图制作
+
+## 视频
+
+:::warning 暂未开放
+视频能力目前暂未开放。页面保留接口路径用于后续接入说明，实际可用状态以控制台和当前分组权限为准。
+:::
+
+视频接口用于提交视频生成任务，并通过任务 ID 查询生成状态或获取结果内容。
+
+对应路径：
+
 - `POST /v1/videos`
 - `GET /v1/videos/{task_id}`
+- `GET /v1/videos/{task_id}/content`
+- `POST /kling/v1/videos/text2video`
+- `GET /kling/v1/videos/text2video/{task_id}`
+- `POST /kling/v1/videos/image2video`
+- `GET /kling/v1/videos/image2video/{task_id}`
 
-在首次验证阶段，建议始终先从 `GET /v1/models` 开始。
+常见用途：
 
-## 后台管理 API 的典型适用场景
+- 文生视频
+- 图生视频
+- 视频任务状态查询
+- 生成结果下载
 
-以下场景通常需要阅读后台管理 API：
+## 模型列表查询
 
-- 控制台相关二次开发
-- 平台联动
-- 自动化管理脚本
-- 用户、模型、渠道或配置管理
+模型列表查询用于查看当前令牌、分组和权限下可见的模型。首次接入、客户端配置、模型不可用排查时，建议先调用该接口。
 
-如当前目标仅为调用模型能力，可暂不阅读该部分。
+对应路径：
 
-## 当前规范同步情况
+- `GET /v1/models`
+- `GET /v1beta/models`
 
-### 中转 API 规范
+常见用途：
 
-- 文件：`static/openapi/relay.json`
-- 当前路径数量：35
-
-### 后台管理 API 规范
-
-- 文件：`static/openapi/api.json`
-- 当前路径数量：131
-
-## 文档与 OpenAPI 的关系
-
-本文档页面主要用于说明：
-
-- 当前应阅读哪一类接口
-- 接入顺序应如何安排
-- 各类能力的定位与范围
-
-OpenAPI 规范主要用于说明：
-
-- 具体字段定义
-- 请求与响应格式
-- 参数结构与接口明细
-
-因此，文档页负责导航与说明，OpenAPI 规范负责接口细节。
-
-## 推荐阅读顺序
-
-1. [API 快速开始](/docs/getting-started/api-quickstart)
-2. [鉴权方式](/docs/api-reference/authentication)
-3. [OpenAI 兼容说明](/docs/api-reference/openai-compatibility)
-4. 再根据具体能力进入对应页面
-
-## 继续阅读
-
-- [OpenAI 兼容说明](/docs/api-reference/openai-compatibility)
-- [鉴权方式](/docs/api-reference/authentication)
-- [API 快速开始](/docs/getting-started/api-quickstart)
+- 验证 API Key 是否有效
+- 查看当前令牌可用模型
+- 确认可用分组和模型范围
+- 排查模型名称填写错误
+- 在客户端中同步模型列表
