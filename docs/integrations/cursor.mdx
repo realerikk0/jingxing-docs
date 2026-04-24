@@ -1,146 +1,187 @@
 ---
 title: "Cursor"
-description: "在 Cursor 中配置井陉的 OpenAI 兼容接口"
+description: "在 Cursor 中配置井陉 API endpoint、令牌和模型"
 sidebar_position: 2
 ---
 
 # Cursor
 
-Cursor 支持通过自定义 OpenAI 兼容配置接入第三方网关。对井陉而言，Cursor 是优先级较高的编码客户端之一，适合用于交互式编码、代码解释、文件改写和日常开发辅助。
+Cursor 是一款面向开发者的 AI 代码编辑器，基于 VS Code 体验构建，支持代码问答、文件改写、Inline Edit、Chat、Agent 等开发场景。接入井陉后，可以在 Cursor 中通过 OpenAI 兼容接口调用井陉提供的模型，并使用井陉令牌统一管理鉴权、额度和调用记录。
+
+## 下载 Cursor
+
+如本机尚未安装 Cursor，请先从官方渠道下载：
+
+- [Cursor 官方下载](https://cursor.com/en-US/download)
+- [Cursor 安装说明](https://docs.cursor.com/en/get-started/installation)
+
+安装完成后，打开 Cursor，并确认可以进入 `Cursor Settings`。
 
 ## 适用场景
 
-- 需要以最少配置完成 IDE 接入
-- 需要在编码场景中统一使用井陉提供的模型能力
-- 需要将编码流量与其他聊天流量分开管理
+- 希望在 IDE 中快速接入井陉模型。
+- 希望使用 Cursor 进行代码解释、代码生成、文件改写和项目问答。
+- 希望将 Cursor 的模型调用与其他客户端分开管理。
+- 希望通过单独令牌控制 Cursor 的额度、权限和调用记录。
 
 ## 前置条件
 
-开始配置前，请确认以下信息已经准备完成：
+开始前，请先准备以下信息：
 
-- Base URL：`https://api.jingxing.uk/v1`
-- API Key：专门用于 Cursor 的井陉令牌
-- 模型名称：当前分组下已经验证可用的模型
+| 项目 | 说明 |
+| --- | --- |
+| Cursor | 已安装并可以正常打开 |
+| API Base URL | `https://api.jingxing.uk/v1` |
+| API Key | 在“令牌管理”中创建的 `sk-` 开头令牌 |
+| 模型名称 | 当前令牌可用的模型名称，以控制台显示为准 |
 
-建议避免直接复用以下令牌：
+建议为 Cursor 单独创建令牌，不要复用生产服务、团队共享或其他客户端正在使用的高权限令牌。
 
-- 命令行测试令牌
-- 团队共享的生产令牌
-- 未做模型限制的大权限令牌
+## 接入流程
 
-## 官方界面示意
+```text
+创建 Cursor 专用令牌
+  -> 确认可用模型
+  -> 打开 Cursor Settings
+  -> 填写 API Key 和 Base URL
+  -> 添加或选择模型
+  -> 发送一次测试请求
+```
 
-以下界面示意来自 Cursor 官方帮助中心，用于说明 BYOK 配置入口与基础校验流程。不同版本的按钮位置可能略有差异，但核心字段保持一致。
+## 如何接入
 
-![Cursor BYOK 配置示意](/img/integrations/cursor-byok-doc.png)
+### 1. 创建 Cursor 专用令牌
 
-图中信息可对应为以下操作：
+进入井陉控制台：
 
-- 在 `Settings > Models` 中进入模型配置页
-- 为目标提供商填写 API Key
-- 完成校验后保存配置
-- 回到模型选择器验证模型是否可见
+```txt
+令牌管理 -> 新建令牌
+```
 
-## 配置步骤
+建议命名为 `cursor-dev`、`cursor-mac`、`cursor-work` 等便于识别的名称。后续如果需要排查 Cursor 消耗、停用某台设备或调整权限，可以直接定位到对应令牌。
 
-### 1. 在井陉侧创建 Cursor 专用令牌
+### 2. 确认模型可用
 
-建议采用以下配置原则：
+在控制台中查看当前令牌可用的模型。首次接入建议只选择一个模型完成验证，确认 Cursor 和井陉之间的链路正常后，再增加其他模型。
 
-- 名称：如 `cursor-dev`、`cursor-team`
-- 分组：选择适合编码和交互式对话的分组
-- 模型限制：仅开放计划在 Cursor 中使用的模型
-- 额度：满足验证与日常使用需求
+模型名称需要与控制台显示保持一致。例如：
 
-### 2. 在 Cursor 中填写自定义 OpenAI 配置
+```txt
+gpt-4.1
+```
 
-根据 Cursor 的 BYOK 配置路径，填写以下信息：
+如使用其他模型，请以当前控制台中可见、可调用的名称为准。
 
-- API Key：井陉令牌
-- Base URL：`https://api.jingxing.uk/v1`
+### 3. 打开 Cursor 模型设置
 
-如当前版本提供连接测试或验证按钮，建议在保存配置后先执行一次验证。
+在 Cursor 中进入：
 
-### 3. 首次仅验证一个模型
+```txt
+Cursor Settings -> Models
+```
 
-首次接入建议仅使用一个已经验证可用的模型，以便快速判断接入链路是否正常。完成首次验证后，再逐步补充其他模型。
+找到 OpenAI 或 OpenAI API Key 相关配置区域。不同 Cursor 版本的界面名称可能略有差异，但通常需要完成以下三项：
 
-## 模型选择建议
+- 启用 OpenAI API Key。
+- 填写井陉 API Key。
+- 启用或填写 Override OpenAI Base URL。
 
-Cursor 的典型使用场景是交互式编码，因此建议优先关注以下因素：
+### 4. 填写井陉配置
 
-1. 响应稳定性
-2. 长上下文能力
-3. 工具调用与复杂输出能力
-4. 成本可控性
+在 Cursor 的 OpenAI 兼容配置中填写：
 
-首次接入不建议直接选择成本最高的模型，应优先选择已经在命令行环境中完成验证的常规模型。
+| 字段 | 填写内容 |
+| --- | --- |
+| OpenAI API Key | 井陉令牌，例如 `sk-...` |
+| Override OpenAI Base URL | `https://api.jingxing.uk/v1` |
+| Model | 当前令牌可用的模型名称 |
+
+填写完成后，点击 Cursor 界面中的 `Verify`、`Save` 或对应确认按钮。若当前版本提供连接测试，建议先完成验证再进入正式会话。
+
+### 5. 添加或选择模型
+
+如果模型列表中已经出现目标模型，直接选择即可。
+
+如果列表中没有目标模型，可以尝试使用 `Add Custom Model` 添加模型名称。添加时请使用井陉控制台中显示的完整模型名，不要自行改写大小写、前缀或后缀。
+
+首次验证建议选择一个普通聊天或编码模型，不建议同时添加大量模型。这样更容易判断问题来自模型名称、令牌权限，还是 Cursor 配置本身。
+
+### 6. 发送测试请求
+
+打开一个项目目录，在 Cursor Chat 中发送一个简单请求：
+
+```txt
+请总结当前文件的作用，并指出可以改进的地方。
+```
+
+如果能够正常返回，并且井陉控制台中出现对应调用记录，说明接入已经完成。
 
 ## 验证方法
 
-推荐按以下顺序完成验证：
+推荐按以下顺序验证：
 
-1. 在命令行中使用当前令牌执行 `GET /v1/models`
-2. 在 Cursor 中填入 API Key 与 Base URL
-3. 选择一个已验证可用的模型
-4. 执行一次简单请求，例如解释当前文件、补充注释或总结目录结构
+1. 在井陉控制台确认令牌处于启用状态。
+2. 在 Cursor 中填写 API Key 和 Base URL。
+3. 点击 `Verify` 或保存配置。
+4. 添加或选择一个模型。
+5. 发送一条简单 Chat 请求。
+6. 回到井陉控制台查看调用记录和额度消耗。
 
-如上述步骤可以完成，则说明核心接入链路已经建立。
+## 注意事项
 
-## 已知限制
-
-截至 2026-04-15，Cursor 对自定义 OpenAI Base URL 的支持已可用于常规接入，但在部分版本中，覆盖 OpenAI Base URL 与 API Key 后，可能会影响 Cursor 原生模型或其他提供商模型的切换体验。
-
-这意味着：
-
-- 若 Cursor 主要用于接入井陉，则通常不会构成障碍
-- 若同一实例需要频繁切换井陉模型与 Cursor 原生模型，则应预留额外测试时间
+- Cursor 自定义 API Key 主要适用于标准聊天模型。
+- Tab Completion 等依赖 Cursor 专用模型的能力，可能仍会使用 Cursor 内置模型。
+- Override OpenAI Base URL 可能影响 Cursor 对 OpenAI 模型的整体路由。
+- 如果需要同时使用 Cursor 原生模型和井陉模型，建议保留一个清晰的切换流程。
 
 ## 常见问题
 
-### 401 未通过认证
+### Base URL 应该填写什么
 
-建议依次检查以下内容：
+填写：
 
-- API Key 是否完整复制
-- Base URL 是否准确写为 `https://api.jingxing.uk/v1`
-- 当前令牌是否过期、停用或失效
+```txt
+https://api.jingxing.uk/v1
+```
 
-### 模型可见但调用失败
+Cursor 通过 OpenAI 兼容接口接入井陉，因此这里需要包含 `/v1`。
 
-建议优先排查：
+### API Key 验证失败
 
-- 当前令牌是否对模型做了限制
-- 当前分组是否开放该模型
-- Cursor 是否仍缓存旧配置
+请依次检查：
 
-### 开启自定义 Base URL 后其他模型不可用
+- API Key 是否完整复制，且以 `sk-` 开头。
+- Base URL 是否填写为 `https://api.jingxing.uk/v1`。
+- 当前令牌是否已启用。
+- 当前令牌是否还有可用额度。
+- 当前网络是否可以访问井陉 API。
 
-此类问题通常与 Cursor 当前版本的 BYOK 行为有关，不一定是井陉侧问题。若需要混合使用多类模型，建议先明确当前工作流的主要模型来源，并减少频繁切换。
+### 模型列表中没有目标模型
 
-### 响应缓慢或频繁超时
+可以尝试使用 `Add Custom Model` 手动添加模型名称。模型名称必须与井陉控制台显示一致。
 
-建议优先检查：
+如果添加后仍不可用，建议先换用一个已确认可调用的模型完成验证，再排查目标模型本身的权限和兼容性。
 
-- 当前分组是否偏向低成本而非低延迟
-- 当前模型是否适合交互式编码
-- 当前会话上下文是否过长
+### Chat 可以用，但 Tab Completion 没有变化
 
-## 实践建议
+这是 Cursor 的正常限制之一。自定义 API Key 主要用于标准聊天模型，Tab Completion 等专用能力可能继续使用 Cursor 内置模型，不一定会通过井陉令牌调用。
 
-- 为 Cursor 单独签发令牌
-- 为 Cursor 选择独立分组
-- 首次仅接入少量模型
-- 先完成命令行验证，再完成客户端验证
-- 出现问题时，优先使用最小请求排除网关侧问题
+### 开启 Override OpenAI Base URL 后，其他模型异常
+
+该设置可能会影响 Cursor 对 OpenAI 相关模型的整体路由。如果需要频繁切换 Cursor 原生模型和井陉模型，建议在切换前确认当前 Base URL、API Key 和模型选择是否一致。
+
+### 如何确认请求是否经过井陉
+
+最直接的方式是在井陉控制台查看调用记录。若 Cursor 返回成功，但控制台没有记录，通常说明当前请求没有使用井陉的 API endpoint，或 Cursor 仍在使用原有模型配置。
 
 ## 官方参考
 
-- [Cursor Docs: Bring your own API key](https://cursor.com/help/models-and-usage/api-keys)
-- [Cursor Community: custom OpenAI Base URL affects other providers](https://forum.cursor.com/t/after-integrating-the-open-api-key-the-existing-ai-becomes-unusable/150454)
+- [Cursor API Keys](https://docs.cursor.com/advanced/api-keys)
+- [Cursor Models](https://docs.cursor.com/en/settings/models)
+- [Cursor Installation](https://docs.cursor.com/en/get-started/installation)
 
 ## 继续阅读
 
-- [API 快速开始](/docs/getting-started/api-quickstart)
+- [Claude Code](/docs/integrations/claude-code)
+- [OpenAI Codex](/docs/integrations/openai-codex)
 - [令牌管理](/docs/platform/token-management)
-- [错误与重试](/docs/platform/errors-and-retries)
