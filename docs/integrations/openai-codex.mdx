@@ -1,144 +1,239 @@
 ---
 title: "OpenAI Codex"
-description: "如何在 OpenAI Codex 或兼容客户端中使用井陉"
+description: "在 Codex CLI 中配置井陉 API endpoint、令牌和模型"
 sidebar_position: 3
 ---
 
 # OpenAI Codex
 
-这一页最重要的不是“硬凑一个能跑的接法”，而是先把边界说清楚。  
-截至 2026-04-15，OpenAI 官方的 Codex 产品线包括 Codex CLI、Codex App、Web 和 IDE surfaces；它们首先是围绕 OpenAI 自己的账户体系和官方能力设计的，而不是把任意第三方 OpenAI 兼容网关当作默认主路径。
+OpenAI Codex 是面向软件开发的编码 Agent，支持在本地终端中阅读代码、修改文件、运行命令、解释项目并协助完成开发任务。这里的接入说明主要面向 **Codex CLI**，用于将 Codex CLI 的模型 provider 配置为井陉。
 
-## 先说结论
+> Codex Web、Codex App 和 Codex IDE Extension 的登录与权限通常由 OpenAI 官方账户体系管理。本页重点说明 Codex CLI 的自定义 provider 配置，不代表所有 Codex 产品形态都可以用同样方式接入第三方 endpoint。
 
-- 如果你说的是 **OpenAI 官方 Codex App / Web**：不建议把这一页理解成“直接接井陉”的教程
-- 如果你说的是 **Codex CLI 的高级 API-key / provider 配置**：存在一定兼容空间，但不应当当作零成本、零差异方案
-- 如果你的目标是“稳定地通过井陉做编码助手接入”，当前阶段优先推荐 [Cursor](/docs/integrations/cursor) 或 [Cherry Studio](/docs/integrations/cherry-studio)
+## 安装 Codex CLI
 
-## 为什么这页要写得更保守
+如本机尚未安装 Codex CLI，可使用官方 npm 包安装：
 
-因为“OpenAI 兼容”并不自动等于“所有 OpenAI 自家工具都能无缝切第三方网关”。
+```bash
+npm i -g @openai/codex
+```
 
-对于 Codex 这类产品，你需要同时考虑：
+安装完成后执行：
 
-- 官方支持的登录方式
-- 官方支持的 API key 路径
-- 客户端是否允许自定义 provider / base URL
-- 具体 surface 是 App、Web、CLI 还是 IDE
+```bash
+codex --version
+```
 
-这几件事并不是完全一样的。
+如果能够输出版本号，说明 Codex CLI 已可在当前终端中使用。
 
-## 官方原生使用路径
+## 适用场景
 
-根据 OpenAI 官方 Codex 仓库与文档，Codex CLI 的推荐主路径是：
+- 希望在终端中使用 Codex 处理本地代码仓库。
+- 希望通过井陉令牌接入可用模型。
+- 希望把 Codex CLI 的调用记录、额度和权限统一纳入井陉控制台管理。
+- 希望为 Codex CLI 单独配置模型 provider，而不影响其他客户端。
 
-- 直接用 ChatGPT 账户登录
-- 或按官方文档做 API key 额外配置
+## 前置条件
 
-这意味着：如果你只是想“用 OpenAI 官方 Codex 原生体验”，最稳的方案仍然是走官方原生路径，而不是先想着把它改造成一个第三方网关客户端。
+开始前，请先准备以下信息：
 
-## 哪些场景下可以考虑井陉
+| 项目 | 说明 |
+| --- | --- |
+| Codex CLI | 已安装并可运行 `codex` 命令 |
+| API endpoint | `https://api.jingxing.uk/v1` |
+| 井陉令牌 | 在“令牌管理”中创建的 `sk-` 开头令牌 |
+| 模型名称 | 当前令牌可用且适合 Codex CLI 的模型名称，以控制台显示为准 |
 
-### 1. 你使用的是更偏工程化的 Codex CLI 配置
+建议为 Codex CLI 单独创建令牌，不要复用生产服务、团队共享或其他客户端正在使用的高权限令牌。
 
-Codex CLI 本身是开源项目，也存在自定义 provider、profile 或 API-key 路径。  
-如果你团队对 CLI 配置和兼容性有足够控制力，可以把井陉当作一个“受控实验路径”去验证。
+## 接入流程
 
-### 2. 你真正要的是“编码类工作流 + 统一网关”
+```text
+创建 Codex CLI 专用令牌
+  -> 确认可用模型
+  -> 写入 Codex CLI provider 配置
+  -> 设置井陉令牌环境变量
+  -> 使用 profile 启动 Codex
+  -> 发送一次测试请求
+```
 
-如果你的目标不是追求 OpenAI 原生 Codex 界面，而是：
+## 如何接入
 
-- 统一令牌
-- 统一模型访问
-- 统一审计
-- 统一额度管理
+### 1. 创建 Codex CLI 专用令牌
 
-那井陉当然有价值，只是更适合放在“统一模型接入层”的位置，而不是强行假设所有 Codex surface 都会把它当成第一等公民。
+进入井陉控制台：
 
-## 建议怎么理解“兼容但不完全一致”
+```txt
+令牌管理 -> 新建令牌
+```
 
-最核心的差异在这里：
+建议命名为 `codex-cli-mac`、`codex-cli-work`、`codex-cli-project` 等便于识别的名称。这样后续查看消耗、停用令牌或排查请求时更清晰。
 
-- 井陉优先提供的是 OpenAI 兼容网关接口
-- OpenAI Codex 优先提供的是 OpenAI 自家 coding agent 体验
+### 2. 确认可用模型
 
-所以你可以把井陉理解成：
+在控制台中查看当前令牌可用的模型。首次接入建议只选择一个模型完成验证，确认 Codex CLI 与井陉之间的链路正常后，再切换或增加其他模型。
 
-- 对很多通用客户端来说，是直接接入点
-- 对 Codex 来说，更像一个需要验证的兼容路径
+模型名称需要与控制台显示保持一致。例如：
 
-## 如果你一定要尝试 Codex CLI + 井陉
+```txt
+gpt-5.3-codex
+```
 
-建议按下面思路理解，而不是直接在生产环境无脑上：
+如使用其他模型，请以当前控制台中可见、可调用的名称为准。
 
-### 1. 先确认你的版本支持 API-key / provider 配置
+### 3. 配置 Codex provider
 
-不同 Codex 版本的可配置能力和行为可能不同。  
-先确认当前版本是否允许你用 API key 模式，以及是否存在可用的 provider / profile 配置入口。
+打开或创建 Codex CLI 用户配置文件：
 
-### 2. 把井陉当成“实验性 provider”先小范围验证
+```txt
+~/.codex/config.toml
+```
 
-先不要直接把团队主工作流全部切过去。  
-优先只验证：
+加入一个井陉 provider 和对应 profile：
 
-- 能否发起最小请求
-- 能否列出或选择目标模型
-- 能否在最小任务下稳定工作
+```toml title="~/.codex/config.toml"
+[model_providers.jingxing]
+name = "Jingxing"
+base_url = "https://api.jingxing.uk/v1"
+env_key = "JINGXING_API_KEY"
+wire_api = "responses"
 
-### 3. 先只测一个模型
+[profiles.jingxing]
+model_provider = "jingxing"
+model = "gpt-5.3-codex"
+model_reasoning_effort = "medium"
+```
 
-第一轮只选一个明确可用、你已经验证过的模型。  
-如果一上来就混很多模型、很多 profile，你很难判断问题到底出在：
+字段说明：
 
-- Codex 自身
-- provider 配置
-- Base URL
-- 还是井陉分组与模型权限
+| 字段 | 说明 |
+| --- | --- |
+| `model_providers.jingxing` | 自定义 provider 名称，可保持为 `jingxing` |
+| `base_url` | 井陉 API endpoint，需要包含 `/v1` |
+| `env_key` | Codex CLI 读取令牌的环境变量名 |
+| `wire_api` | Codex CLI 与 provider 通信使用的协议，保持为 `responses` |
+| `profiles.jingxing` | 启动时可选择的配置档 |
+| `model` | 默认模型名称，以井陉控制台可用模型为准 |
 
-## 什么时候不推荐继续折腾
+建议使用 profile 方式接入，避免直接覆盖当前 Codex CLI 的默认 OpenAI 配置。
 
-出现以下情况时，不建议继续把时间花在“强接 Codex 官方 surface 到井陉”上：
+### 4. 设置井陉令牌
 
-- 你真正要的是稳定生产效率，而不是兼容性实验
-- 你只是想要一个好用的编码客户端
-- 你需要团队成员零培训、零额外配置
+在启动 Codex CLI 前，在同一个终端窗口中设置环境变量：
 
-这时直接用：
+```bash
+export JINGXING_API_KEY="<你的井陉令牌>"
+```
 
-- [Cursor](/docs/integrations/cursor)
-- [Cherry Studio](/docs/integrations/cherry-studio)
+示例：
 
-往往会更快拿到结果。
+```bash
+export JINGXING_API_KEY="sk-..."
+```
+
+请勿把真实令牌写入公开文档、截图、代码仓库或聊天记录中。
+
+### 5. 使用井陉 profile 启动 Codex
+
+进入项目目录后启动 Codex：
+
+```bash
+cd /path/to/your/project
+codex --profile jingxing
+```
+
+也可以在启动时临时指定模型：
+
+```bash
+codex --profile jingxing --model gpt-5.3-codex
+```
+
+启动后发送一个简单请求：
+
+```txt
+请总结这个项目的目录结构，并说明主要入口文件。
+```
+
+如果 Codex 能正常返回，并且井陉控制台中出现调用记录，说明接入已经完成。
+
+## 验证方法
+
+推荐按以下顺序验证：
+
+1. 执行 `codex --version`，确认 Codex CLI 已安装。
+2. 检查 `~/.codex/config.toml` 中是否存在 `model_providers.jingxing`。
+3. 在同一终端中执行 `echo $JINGXING_API_KEY`，确认令牌环境变量已生效。
+4. 使用 `codex --profile jingxing` 启动。
+5. 发送一条简单请求。
+6. 回到井陉控制台查看调用记录和额度消耗。
+
+## 注意事项
+
+- 本页主要适用于 Codex CLI，不适用于 Codex Web/App 的默认登录路径。
+- Codex CLI 的自定义 provider 当前更适合高级用户配置，首次接入建议先小范围验证。
+- `wire_api` 请保持为 `responses`，不要改成其他值。
+- 井陉侧需要当前模型可通过 Responses 风格接口调用，否则可能出现请求失败。
+- 不建议把真实令牌直接写入 `config.toml`，优先使用环境变量。
 
 ## 常见问题
 
-### 井陉不是 OpenAI 兼容吗，为什么 Codex 还不一定能直接接
+### Base URL 应该填写什么
 
-因为“OpenAI 兼容”通常指接口协议兼容，不代表 OpenAI 自家所有产品表层都把第三方 endpoint 作为默认支持路径。
+填写：
 
-### OpenAI Codex App / Web 能不能直接换成井陉
+```txt
+https://api.jingxing.uk/v1
+```
 
-这页不建议把它当成当前默认可行方案。  
-至少在现阶段，官方主路径仍然是 OpenAI 自己的账户体系和官方配置。
+Codex CLI 的自定义 provider 配置需要写入 API base URL。井陉的 Responses 接口位于 `/v1/responses`，因此这里需要包含 `/v1`。
 
-### Codex CLI 能不能试
+### 可以直接在 Codex Web 或 App 中这样配置吗
 
-可以试，但建议明确把它当成高级用户的兼容性验证，而不是默认新手接入方案。
+不建议这样理解。Codex Web、Codex App 和 IDE Extension 通常走 OpenAI 官方账户体系。本页配置方式面向 Codex CLI 的自定义 provider。
 
-### 那这一页为什么还保留
+### 提示找不到 provider 或 profile
 
-因为现实里确实会有人问“井陉能不能喂给 Codex 用”。  
-这一页的价值不是鼓励误接，而是提前把预期校准好，帮你少走弯路。
+请检查：
+
+- `~/.codex/config.toml` 文件路径是否正确。
+- `[model_providers.jingxing]` 和 `[profiles.jingxing]` 是否完整。
+- TOML 语法是否正确，例如引号、方括号和换行。
+- 启动命令是否使用了 `codex --profile jingxing`。
+
+### 提示未设置 API Key
+
+请确认当前终端中已经设置：
+
+```bash
+export JINGXING_API_KEY="<你的井陉令牌>"
+```
+
+如果是在新的终端窗口启动 Codex，需要重新设置该环境变量，或将其写入本机安全的 shell 配置中。
+
+### 模型无法调用
+
+常见原因包括：
+
+- 模型名称与控制台显示不一致。
+- 当前令牌没有目标模型权限。
+- 当前模型不适合 Codex CLI 的 Responses 调用方式。
+- 令牌额度不足或已被停用。
+
+建议先换用一个已确认可调用的模型完成最小验证，再继续排查目标模型。
+
+### 如何确认请求是否经过井陉
+
+最直接的方式是在井陉控制台查看调用记录。若 Codex CLI 返回成功，但控制台没有记录，通常说明当前 profile 未生效，或 Codex 仍在使用原有 provider。
 
 ## 官方参考
 
-- [OpenAI Codex CLI GitHub README](https://github.com/openai/codex)
-- [OpenAI Codex Documentation](https://platform.openai.com/docs/codex)
-- [OpenAI Help: Using Codex with your ChatGPT plan](https://help.openai.com/en/articles/11369540-using-codex-with-your-chatgpt-plan)
-- [OpenAI Help: Codex CLI and Sign in with ChatGPT](https://help.openai.com/en/articles/11381614)
+- [Codex CLI](https://developers.openai.com/codex/cli)
+- [Codex Command line options](https://developers.openai.com/codex/cli/reference)
+- [Codex Configuration reference](https://developers.openai.com/codex/config-reference)
+- [Codex Sample configuration](https://developers.openai.com/codex/config-sample)
 
-## 下一步
+## 继续阅读
 
-- 想要最稳的井陉编码客户端接入：优先看[Cursor](/docs/integrations/cursor)
-- 想用桌面多模型聚合客户端：看[Cherry Studio](/docs/integrations/cherry-studio)
-- 想先把 API 和令牌跑通：看[API 快速开始](/docs/getting-started/api-quickstart)和[令牌管理](/docs/platform/token-management)
+- [Claude Code](/docs/integrations/claude-code)
+- [Cursor](/docs/integrations/cursor)
+- [令牌管理](/docs/platform/token-management)
