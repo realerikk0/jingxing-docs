@@ -1,147 +1,221 @@
 ---
 title: "Cherry Studio"
-description: "在 Cherry Studio 中通过自定义 OpenAI 服务商接入井陉"
+description: "在 Cherry Studio 中配置井陉服务商、令牌和模型"
 sidebar_position: 4
 ---
 
 # Cherry Studio
 
-Cherry Studio 支持通过自定义服务商接入 OpenAI 兼容接口，适合将井陉作为桌面客户端的统一模型入口。对于井陉而言，推荐采用“自定义服务商 + OpenAI 类型”的方式配置，而非混入已有官方服务商配置。
+Cherry Studio 是一款桌面 AI 聊天客户端，支持 Windows、macOS 和 Linux。它可以接入多个模型服务商，并通过自定义 OpenAI 服务商连接 OpenAI 兼容接口。接入井陉后，用户可以在 Cherry Studio 中使用井陉令牌调用可用模型，并在井陉控制台查看调用记录与额度消耗。
+
+## 下载 Cherry Studio
+
+如本机尚未安装 Cherry Studio，请先从官方渠道下载：
+
+- [Cherry Studio 官方下载](https://docs.cherry-ai.com/docs/en-us/cherry-studio/download)
+- [Cherry Studio GitHub](https://github.com/CherryHQ/cherry-studio)
+
+安装完成后，打开 Cherry Studio，并确认可以进入模型服务设置页面。
 
 ## 适用场景
 
-- 需要快速完成桌面客户端接入
-- 需要将井陉与官方 OpenAI 等服务商清晰区分
-- 需要在同一桌面客户端中管理多个用途不同的服务实例
+- 希望在桌面客户端中快速使用井陉模型。
+- 希望把聊天、翻译、知识库问答等日常 AI 使用场景集中在一个客户端中。
+- 希望通过单独令牌管理 Cherry Studio 的额度、权限和调用记录。
+- 希望在同一客户端中同时保留井陉和其他模型服务商配置。
 
 ## 前置条件
 
-开始配置前，请准备以下信息：
+开始前，请先准备以下信息：
 
-- Base URL：`https://api.jingxing.uk/v1`
-- API Key：专门用于 Cherry Studio 的井陉令牌
-- 模型名称：当前分组下已经验证可用的模型
+| 项目 | 说明 |
+| --- | --- |
+| Cherry Studio | 已安装并可以正常打开 |
+| API Key | 在“令牌管理”中创建的 `sk-` 开头令牌 |
+| API 地址 | `https://api.jingxing.uk` |
+| 模型名称 | 当前令牌可用的模型名称，以控制台显示为准 |
 
-建议避免直接复用以下令牌：
+> 注意：Cherry Studio 的 `API 地址` 字段通常会自动拼接标准 OpenAI 聊天路径 `/v1/chat/completions`。因此在该字段中填写 `https://api.jingxing.uk` 即可。若你的 Cherry Studio 版本明确显示为 `Base URL`，并要求填写 OpenAI SDK 风格地址，可改填 `https://api.jingxing.uk/v1` 后再进行连通性检查。
 
-- Cursor 使用中的令牌
-- 团队生产服务令牌
-- 未限制模型范围的大权限令牌
+建议为 Cherry Studio 单独创建令牌，不要复用生产服务、团队共享或其他客户端正在使用的高权限令牌。
 
-## 配置原则
+## 接入流程
 
-推荐使用自定义服务商的原因如下：
+```text
+创建 Cherry Studio 专用令牌
+  -> 新增自定义服务商
+  -> 服务商类型选择 OpenAI
+  -> 填写 API Key 和 API 地址
+  -> 添加或拉取模型
+  -> 开启服务商并发送测试消息
+```
 
-- 服务商名称可以直接标识为 `Jingxing`
-- 可以与已有官方服务商配置分离
-- 后续切换令牌、模型和分组时更易于维护
+## 如何接入
 
-## 官方界面示意
+### 1. 创建 Cherry Studio 专用令牌
 
-以下界面示意来自 Cherry Studio 官方文档，用于说明“自定义服务商”配置入口与服务商类型选择方式。实际界面可能随版本变化，但关键字段保持一致。
+进入井陉控制台：
+
+```txt
+令牌管理 -> 新建令牌
+```
+
+建议命名为 `cherry-studio`、`cherry-mac`、`cherry-desktop` 等便于识别的名称。后续查看 Cherry Studio 消耗、停用某台设备或排查请求时，可以直接定位到对应令牌。
+
+### 2. 打开模型服务设置
+
+在 Cherry Studio 中进入：
+
+```txt
+设置 -> 模型服务
+```
+
+不同版本的界面名称可能略有差异，通常会显示为 `Model Services`、`模型服务` 或 `模型服务商`。
+
+### 3. 新增井陉服务商
+
+在服务商列表底部点击 `添加` 或 `Add`，新增一个自定义服务商：
+
+| 字段 | 填写内容 |
+| --- | --- |
+| 服务商名称 | `Jingxing` 或 `井陉` |
+| 服务商类型 | `OpenAI` |
+
+选择 `OpenAI` 类型即可。井陉提供 OpenAI 兼容接口，Cherry Studio 会按 OpenAI 聊天接口格式发起请求。
+
+### 4. 填写 API Key 和 API 地址
+
+在新建的井陉服务商配置中填写：
+
+| 字段 | 填写内容 |
+| --- | --- |
+| API Key | 井陉令牌，例如 `sk-...` |
+| API 地址 | `https://api.jingxing.uk` |
+
+填写完成后，请确认服务商右上角开关处于开启状态。Cherry Studio 官方文档说明，服务商未开启时，即使配置已经保存，也可能无法在模型列表中找到对应模型。
+
+### 5. 添加模型
+
+Cherry Studio 支持两种添加模型的方式：
+
+- 点击 `管理` 或 `Manage`，从接口返回的模型列表中选择需要使用的模型。
+- 如果模型列表没有自动出现，手动添加井陉控制台中显示的完整模型名称。
+
+首次验证建议只添加一个常用聊天模型。确认链路正常后，再逐步添加其他模型，避免一次性添加过多模型导致排查困难。
+
+### 6. 发送测试消息
+
+回到 Cherry Studio 聊天界面，选择刚刚创建的 `Jingxing` 服务商和目标模型，然后发送一条简单消息：
+
+```txt
+请用一句话介绍你自己。
+```
+
+如果 Cherry Studio 能正常返回，并且井陉控制台中出现调用记录，说明接入已经完成。
+
+## 通过控制台一键打开
+
+如果你希望减少手动配置，可以从井陉控制台的聊天入口打开 Cherry Studio：
+
+```txt
+令牌管理 -> 选择一个令牌 -> 聊天下拉菜单 -> Cherry Studio
+```
+
+使用该方式前，请先安装并打开 Cherry Studio。浏览器弹出外部应用确认时，需要手动允许打开 Cherry Studio。若应用没有被成功拉起，或配置没有导入完成，请按本页的手动方式重新配置服务商。
+
+## 界面示意
+
+以下界面示意来自 Cherry Studio 官方文档，用于说明自定义服务商的配置入口和服务商类型选择方式。实际界面可能随版本变化，但关键字段保持一致。
 
 ![Cherry Studio 自定义服务商示意](/img/integrations/cherry-custom-provider-doc.png)
 
-图中应重点关注以下信息：
+重点关注以下字段：
 
-- 配置入口位于模型服务商设置页
-- 新增服务商时应选择 `OpenAI` 类型
-- 令牌与 API 地址需分别填写，不建议混用已有官方服务商配置
-- 完成服务商新增后，再手动补充需要的模型
-
-## 配置步骤
-
-### 1. 在井陉创建 Cherry Studio 专用令牌
-
-建议配置如下：
-
-- 名称：如 `cherry-desktop`、`cherry-team`
-- 分组：适合桌面对话的聊天分组
-- 模型限制：仅开放计划在 Cherry Studio 中使用的模型
-- 额度：覆盖验证与日常使用需求
-
-### 2. 在 Cherry Studio 中新增自定义服务商
-
-按照 Cherry Studio 官方文档的自定义服务商流程：
-
-1. 新增服务商
-2. 服务商类型选择 `OpenAI`
-3. 服务商名称填写 `Jingxing` 或组织内部标准命名
-
-### 3. 填写接口地址与令牌
-
-在服务商配置中填写：
-
-- API Key：井陉令牌
-- API 地址：`https://api.jingxing.uk/v1`
-
-如当前版本提供检查或测试按钮，建议保存后先执行一次连通性验证。
-
-### 4. 手动添加模型
-
-首次接入建议只添加少量已经验证可用的模型，例如一个常规聊天模型和一个备用模型。待主链路稳定后，再逐步扩充模型列表。
-
-## 多用途配置建议
-
-若 Cherry Studio 同时用于开发、生产观察或高成本模型测试，建议直接创建多个服务商实例，而不是频繁修改同一配置。例如：
-
-- `Jingxing Dev`
-- `Jingxing Prod`
-- `Jingxing HighCost`
-
-该方式更有利于长期维护，也便于分离不同用途的令牌与分组。
+- 服务商类型选择 `OpenAI`。
+- API Key 填写井陉令牌。
+- API 地址按 Cherry Studio 字段要求填写。
+- 添加模型后，需要开启服务商开关。
 
 ## 验证方法
 
-建议按以下顺序完成验证：
+推荐按以下顺序验证：
 
-1. 在命令行中使用当前令牌执行 `GET /v1/models`
-2. 在 Cherry Studio 中新增 `Jingxing` 服务商
-3. 填写 API Key 与 Base URL
-4. 手动添加一个已验证模型
-5. 发起一次简单对话请求
+1. 在井陉控制台确认令牌处于启用状态。
+2. 在 Cherry Studio 中新增 `Jingxing` 服务商。
+3. 填写 API Key 和 API 地址。
+4. 添加一个已确认可用的模型。
+5. 点击 Cherry Studio 的检查或验证按钮。
+6. 在聊天界面发送一条测试消息。
+7. 回到井陉控制台查看调用记录和额度消耗。
+
+## 注意事项
+
+- 不要把真实令牌写入公开文档、截图、代码仓库或聊天记录中。
+- 不建议在同一个 Cherry Studio 服务商中混用多个来源不同的 API Key。
+- 模型名称必须与井陉控制台显示一致，不要自行改写大小写、前缀或后缀。
+- 若需要区分个人设备、办公设备或测试用途，建议创建多个井陉令牌，而不是共用一个令牌。
+- 如果需要同时使用井陉和其他服务商，建议保留独立服务商配置，避免覆盖原有 OpenAI 配置。
 
 ## 常见问题
 
-### 服务商可新增，但模型不可用
+### API 地址应该填写什么
 
-建议优先检查：
+在 Cherry Studio 的 `API 地址` 字段中，优先填写：
 
-- 模型是否已手动添加
-- 模型名称是否与井陉当前可见模型一致
-- 当前分组是否开放该模型
+```txt
+https://api.jingxing.uk
+```
 
-### 认证失败
+Cherry Studio 通常会自动拼接标准 OpenAI 聊天路径。如果当前版本明确要求填写 OpenAI SDK 风格 `Base URL`，可改填：
 
-建议依次检查：
+```txt
+https://api.jingxing.uk/v1
+```
 
-- API Key 是否完整复制
-- API 地址是否准确填写为 `https://api.jingxing.uk/v1`
-- 当前令牌是否过期、停用或无效
+填写后请使用 Cherry Studio 的检查按钮验证。若验证失败，优先在这两个地址之间切换排查。
 
-### 响应超时或失败率偏高
+### 检查按钮失败
 
-建议检查：
+请依次检查：
 
-- 当前分组是否偏向低成本而非稳定性
-- 当前模型是否适合长上下文场景
-- Cherry Studio 是否存在频繁重试
+- API Key 是否完整复制，且以 `sk-` 开头。
+- API 地址是否填写在正确字段中。
+- 当前令牌是否启用，且仍有可用额度。
+- 服务商右上角开关是否已经开启。
+- 模型列表中是否已经添加至少一个可用模型。
 
-## 实践建议
+### 模型列表中没有目标模型
 
-- 为 Cherry Studio 单独签发令牌
-- 使用自定义服务商而非混用官方服务商配置
-- 首次仅配置少量模型
-- 不同用途使用不同服务商实例
-- 出现问题时，优先以命令行请求验证 API 链路
+可以点击 `管理` 或 `Manage` 尝试拉取模型列表。如果没有自动出现，请手动添加模型名称。模型名称必须与井陉控制台显示一致。
+
+### 聊天可以打开，但没有调用记录
+
+通常说明当前会话没有使用井陉服务商。请确认聊天界面中选择的是 `Jingxing` 服务商下的模型，而不是 Cherry Studio 默认服务商或其他已配置服务商。
+
+### 一键打开没有反应
+
+常见原因包括：
+
+- 本机尚未安装 Cherry Studio。
+- 浏览器阻止了外部应用协议。
+- 不是从按钮或下拉菜单主动点击打开。
+- 系统弹窗中没有允许打开外部应用。
+
+建议先确认 Cherry Studio 已安装并可以正常打开，再回到“令牌管理”的聊天下拉菜单中重新点击。
+
+### 可以在一个服务商里放多个 API Key 吗
+
+Cherry Studio 支持在部分服务商配置中填写多个 Key 并轮询使用。但首次接入井陉时，建议只使用一个 Cherry Studio 专用令牌。这样调用记录、额度消耗和问题排查会更清晰。
 
 ## 官方参考
 
-- [Cherry Studio: Custom Providers](https://docs.cherry-ai.com/docs/en-us/pre-basic/providers/zi-ding-yi-fu-wu-shang)
+- [Cherry Studio: Client Download](https://docs.cherry-ai.com/docs/en-us/cherry-studio/download)
+- [Cherry Studio: Model Service Settings](https://docs.cherry-ai.com/docs/en-us/pre-basic/settings/providers)
+- [Cherry Studio: Custom Service Provider](https://docs.cherry-ai.com/docs/en-us/pre-basic/providers/zi-ding-yi-fu-wu-shang)
 - [Cherry Studio: OpenAI Provider](https://docs.cherry-ai.com/docs/en-us/pre-basic/providers/openai)
 
 ## 继续阅读
 
-- [API 快速开始](/docs/getting-started/api-quickstart)
+- [如何聊天](/docs/getting-started/how-to-chat)
 - [令牌管理](/docs/platform/token-management)
-- [错误与重试](/docs/platform/errors-and-retries)
+- [Lobe Chat](/docs/integrations/lobe-chat)
