@@ -1,136 +1,233 @@
 ---
 title: "Open WebUI"
-description: "在 Open WebUI 中通过 OpenAI 兼容接口接入井陉"
+description: "在 Open WebUI 中配置井陉 API、令牌和模型"
 sidebar_position: 6
 ---
 
 # Open WebUI
 
-Open WebUI 原生支持 OpenAI-compatible API，适合作为井陉的自部署 Web 前端入口。其优势在于可以将聊天、RAG、图像和音频等能力分层管理，因此适合需要逐步扩展功能的团队环境。
+Open WebUI 是一款可自部署的 Web 聊天前端，支持通过 OpenAI-compatible API 连接外部模型服务。接入井陉后，用户可以在 Open WebUI 中选择井陉提供的模型进行聊天，并在井陉控制台查看调用记录与额度消耗。
+
+## 安装 Open WebUI
+
+如果已经有可用的 Open WebUI 实例，可以直接进入后续配置步骤。如尚未部署，可先参考官方 Quick Start：
+
+- [Open WebUI Quick Start](https://docs.openwebui.com/getting-started/quick-start/)
+
+官方推荐使用 Docker 快速启动：
+
+```bash
+docker run -d -p 3000:8080 \
+  -v open-webui:/app/backend/data \
+  --name open-webui \
+  ghcr.io/open-webui/open-webui:main
+```
+
+启动后，通常可以在浏览器中访问：
+
+```txt
+http://localhost:3000
+```
 
 ## 适用场景
 
-- 需要统一的自部署 Web 前端
-- 需要通过 OpenAI 兼容方式接入井陉
-- 需要后续扩展 RAG、图像或音频能力
+- 希望自部署一个 Web 聊天前端。
+- 希望通过 OpenAI 兼容接口接入井陉模型。
+- 希望让多个用户通过同一个 Web 界面使用模型。
+- 希望在 Open WebUI 内统一管理会话、模型选择和用户访问。
 
 ## 前置条件
 
-请先准备以下信息：
+开始前，请先准备以下信息：
 
-- Base URL：`https://api.jingxing.uk/v1`
-- API Key：专门用于 Open WebUI 的井陉令牌
-- 模型名称：至少一个已经验证可用的模型
+| 项目 | 说明 |
+| --- | --- |
+| Open WebUI | 已安装并可以进入管理设置 |
+| API Base URL | `https://api.jingxing.uk/v1` |
+| API Key | 在“令牌管理”中创建的 `sk-` 开头令牌 |
+| 模型名称 | 当前令牌可用的模型名称，以控制台显示为准 |
 
-## 配置原则
+建议为 Open WebUI 单独创建令牌，不要复用生产服务、团队共享或其他客户端正在使用的高权限令牌。
 
-Open WebUI 的推荐接入顺序为：
+## 接入流程
 
-1. 先建立聊天主链路
-2. 再扩展 RAG / Embedding
-3. 最后扩展图像与音频能力
+```text
+创建 Open WebUI 专用令牌
+  -> 打开 Admin Settings
+  -> 新增 OpenAI connection
+  -> 填写 API Base URL 和 API Key
+  -> 添加或限制模型列表
+  -> 保存并发送测试消息
+```
 
-该顺序有助于将主链路验证与扩展能力验证分开处理，降低排查复杂度。
+## 如何接入
 
-## 官方界面示意
+### 1. 创建 Open WebUI 专用令牌
 
-以下界面示意来自 Open WebUI 官方文档的 OpenAI-compatible 接入页，用于说明 provider connection 的验证逻辑与配置入口。
+进入井陉控制台：
+
+```txt
+令牌管理 -> 新建令牌
+```
+
+建议命名为 `open-webui`、`openwebui-team`、`openwebui-prod` 等便于识别的名称。后续查看 Open WebUI 消耗、停用令牌或排查请求时，可以直接定位到对应令牌。
+
+### 2. 打开 OpenAI 连接设置
+
+在 Open WebUI 中进入：
+
+```txt
+Admin Settings -> Connections -> OpenAI
+```
+
+点击 `Add Connection` 或加号按钮，新增一个 OpenAI-compatible 连接。
+
+### 3. 填写井陉配置
+
+在连接配置中填写：
+
+| 字段 | 填写内容 |
+| --- | --- |
+| URL / Base URL | `https://api.jingxing.uk/v1` |
+| API Key | 井陉令牌，例如 `sk-...` |
+| Model IDs (Filter) | 可选；用于限制只显示指定模型 |
+
+Open WebUI 会使用标准 Bearer token 调用 provider 的 `/models` 接口进行连接校验。井陉支持模型列表查询，通常可以自动显示当前令牌可用模型。
+
+### 4. 限制模型列表
+
+如果模型列表过多，或只希望 Open WebUI 暴露少量模型，可以在 `Model IDs (Filter)` 中添加模型 ID。该字段相当于模型白名单，只会让用户看到已添加的模型。
+
+示例：
+
+```txt
+gpt-4.1
+```
+
+模型名称必须与井陉控制台显示一致。首次验证建议只添加一个模型，确认链路正常后再逐步扩展。
+
+### 5. 保存并测试
+
+保存连接后，回到 Open WebUI 聊天界面，选择刚刚添加的模型，发送一条简单消息：
+
+```txt
+请用一句话介绍你自己。
+```
+
+如果 Open WebUI 能正常返回，并且井陉控制台中出现调用记录，说明接入已经完成。
+
+## 环境变量方式
+
+如果希望在部署时固定井陉配置，也可以使用环境变量：
+
+```bash title=".env"
+OPENAI_API_BASE_URL="https://api.jingxing.uk/v1"
+OPENAI_API_KEY="<你的井陉令牌>"
+```
+
+其中：
+
+| 变量 | 说明 |
+| --- | --- |
+| `OPENAI_API_BASE_URL` | 井陉 API Base URL，需要包含 `/v1` |
+| `OPENAI_API_KEY` | 井陉令牌，例如 `sk-...` |
+
+修改环境变量后，需要重启 Open WebUI。请勿把真实令牌写入公开文档、截图、代码仓库或聊天记录中。
+
+## 界面示意
+
+以下界面示意来自 Open WebUI 官方文档的 OpenAI-compatible 接入页，用于说明 provider connection 的配置入口与验证逻辑。
 
 ![Open WebUI OpenAI-compatible 接入示意](/img/integrations/openwebui-compatible-doc.png)
 
-图中应重点关注以下信息：
+重点关注以下字段：
 
-- Open WebUI 会在新增 provider connection 时尝试校验 `/models`
-- 如 provider 不支持自动探测，需在模型白名单中手动补充模型 ID
-- 首次接入建议先完成聊天主链路验证，再扩展其他能力
-
-## 配置步骤
-
-### 1. 在井陉侧创建 Open WebUI 专用令牌
-
-建议配置如下：
-
-- 名称：如 `openwebui-web`
-- 分组：适合通用聊天或生产前端的分组
-- 模型限制：首次仅开放聊天所需模型
-- 额度：覆盖验证与日常使用需求
-
-### 2. 通过环境变量配置聊天主链路
-
-```bash
-OPENAI_API_BASE_URL=https://api.jingxing.uk/v1
-OPENAI_API_KEY=<YOUR_JINGXING_TOKEN>
-```
-
-如通过管理面板配置，也建议首次仅填写 Base URL 与 API Key，不建议在首轮验证时同时配置图像、音频或 RAG 相关参数。
-
-### 3. 仅验证一个模型
-
-启动或重启服务后，先确认模型列表中出现目标模型，并仅使用一个模型发起首次对话请求。
-
-## 扩展能力说明
-
-### RAG / Embedding
-
-在聊天主链路稳定后，可单独扩展向量化与检索链路。扩展前建议先确认井陉当前分组与模型中已开放相应 Embedding 能力。
-
-### 图像能力
-
-若需要在 Open WebUI 中启用图像生成，应先确认当前分组中已开放图像模型，再配置相应 endpoint 与 key。
-
-### 音频能力
-
-音频能力同样建议在聊天主链路稳定后再单独启用，并先完成独立的 TTS / STT 接口验证。
+- `URL`：填写 `https://api.jingxing.uk/v1`。
+- `API Key`：填写井陉令牌。
+- `Model IDs (Filter)`：按需填写模型白名单。
+- 保存后在模型选择器中选择目标模型进行测试。
 
 ## 验证方法
 
-建议按以下顺序完成验证：
+推荐按以下顺序验证：
 
-1. 在命令行中使用当前令牌执行 `GET /v1/models`
-2. 配置 `OPENAI_API_BASE_URL` 与 `OPENAI_API_KEY`
-3. 重启 Open WebUI
-4. 在界面中选择一个模型
-5. 发起一次简单对话请求
+1. 在井陉控制台确认令牌处于启用状态。
+2. 在 Open WebUI 中进入 `Admin Settings -> Connections -> OpenAI`。
+3. 填写 `https://api.jingxing.uk/v1` 和井陉令牌。
+4. 如需限制模型，在 `Model IDs (Filter)` 中添加一个模型名称。
+5. 保存连接。
+6. 在聊天界面选择目标模型并发送测试消息。
+7. 回到井陉控制台查看调用记录和额度消耗。
+
+## 注意事项
+
+- 本页只覆盖聊天主链路接入；知识库、Embedding、图像、音频等扩展能力建议在聊天可用后再单独验证。
+- `URL` 或 `OPENAI_API_BASE_URL` 需要包含 `/v1`。
+- 不建议把管理密钥、生产服务密钥或团队共享高权限令牌直接用于 Open WebUI。
+- 如果连接多个 provider，建议使用清晰的模型白名单或前缀，避免用户选错模型。
+- 修改环境变量后通常需要重启服务；管理后台保存配置后也需要确认连接处于启用状态。
 
 ## 常见问题
 
-### 模型未显示
+### Base URL 应该填写什么
 
-建议优先检查：
+填写：
 
-- 当前令牌是否具备模型权限
-- Base URL 是否准确写为 `https://api.jingxing.uk/v1`
-- Open WebUI 是否仍在使用旧配置
+```txt
+https://api.jingxing.uk/v1
+```
 
-### 聊天可用，但图像或音频不可用
+Open WebUI 按 OpenAI-compatible API 调用井陉，因此这里需要包含 `/v1`。
 
-此类问题通常说明图像或音频能力尚未开放，或尚未完成对应能力的独立配置，并不一定表示聊天接入存在问题。
+### 连接校验失败
 
-### 认证失败或权限不足
+请依次检查：
 
-建议依次检查：
+- API Key 是否完整复制，且以 `sk-` 开头。
+- URL 是否填写为 `https://api.jingxing.uk/v1`。
+- 当前令牌是否启用，且仍有可用额度。
+- 当前令牌是否有至少一个聊天模型权限。
+- 网络环境是否可以访问井陉 API。
 
-- API Key 是否有效
-- 令牌是否过期或停用
-- 分组是否开放目标模型
-- 来源限制是否误伤当前环境
+### 模型列表中没有目标模型
 
-## 实践建议
+请检查：
 
-- 先完成聊天主链路验证
-- 为 Open WebUI 单独签发令牌
-- 首次仅配置少量模型
-- 扩展能力采用分阶段启用方式
-- 出现问题时，优先排除聊天主链路，再排查扩展功能
+- 当前令牌是否有目标模型权限。
+- `Model IDs (Filter)` 是否隐藏了目标模型。
+- 模型名称是否与井陉控制台显示一致。
+- 连接配置是否已经保存并启用。
+
+如果自动发现失败，可以在 `Model IDs (Filter)` 中手动添加模型 ID 后保存。
+
+### 页面可以打开，但聊天失败
+
+常见原因包括：
+
+- 聊天界面选中的不是井陉连接下的模型。
+- 当前模型不可用或令牌无权限。
+- Open WebUI 仍在使用旧配置。
+- 部署环境中的环境变量尚未重启生效。
+
+建议先使用一个已确认可调用的模型完成最小验证，再继续排查目标模型或扩展能力。
+
+### 知识库、图像或音频可以一起配置吗
+
+不建议在首次接入时一起配置。先完成聊天主链路验证，再根据井陉当前开放能力分别配置知识库、图像或音频相关参数。这样更容易定位问题来源。
+
+### 如何确认请求是否经过井陉
+
+最直接的方式是在井陉控制台查看调用记录。若 Open WebUI 返回成功，但控制台没有记录，通常说明当前请求没有使用井陉 endpoint，或正在使用其他 provider 配置。
 
 ## 官方参考
 
+- [Open WebUI: Quick Start](https://docs.openwebui.com/getting-started/quick-start/)
 - [Open WebUI: Connect a Provider](https://docs.openwebui.com/getting-started/quick-start/connect-a-provider/)
-- [Open WebUI: Starting with OpenAI-Compatible APIs](https://docs.openwebui.com/getting-started/quick-start/connect-a-provider/starting-with-openai-compatible)
-- [Open WebUI: Direct Connections](https://docs.openwebui.com/features/chat-conversations/direct-connections)
+- [Open WebUI: OpenAI-Compatible](https://docs.openwebui.com/getting-started/quick-start/connect-a-provider/starting-with-openai-compatible/)
+- [Open WebUI: Environment Variable Configuration](https://docs.openwebui.com/reference/env-configuration/)
 
 ## 继续阅读
 
 - [Lobe Chat](/docs/integrations/lobe-chat)
-- [Cherry Studio](/docs/integrations/cherry-studio)
-- [错误与重试](/docs/platform/errors-and-retries)
+- [NextChat](/docs/integrations/nextchat)
+- [令牌管理](/docs/platform/token-management)
