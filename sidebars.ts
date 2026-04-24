@@ -131,6 +131,12 @@ const sidebars: SidebarsConfig = {
         },
         {
           type: 'doc',
+          id: 'integrations/opencode',
+          label: 'OpenCode',
+          className: 'sidebar-icon-opencode',
+        },
+        {
+          type: 'doc',
           id: 'integrations/cherry-studio',
           label: 'Cherry Studio',
           className: 'sidebar-icon-cherry',

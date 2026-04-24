@@ -1,0 +1,293 @@
+---
+title: "OpenCode"
+description: "在 OpenCode 中配置井陉 API endpoint、令牌和模型"
+sidebar_position: 4
+---
+
+# OpenCode
+
+OpenCode 是一款开源 AI 编码 Agent，支持终端界面、桌面应用和 IDE 扩展等形态。它可以阅读项目上下文、解释代码、修改文件、执行命令并协助完成开发任务。本页主要说明如何在 OpenCode 中接入井陉，将模型调用统一切换到井陉 API。
+
+## 适用场景
+
+- 希望在终端中使用 AI 编码 Agent 处理本地项目。
+- 希望通过井陉令牌接入 OpenAI 兼容模型。
+- 希望把 OpenCode 的调用记录、额度消耗和令牌权限统一纳入井陉控制台管理。
+- 希望为 OpenCode 单独创建令牌，避免与生产服务或其他客户端共用同一密钥。
+
+## 前置条件
+
+开始前，请先准备以下信息：
+
+| 项目 | 说明 |
+| --- | --- |
+| OpenCode | 已安装并可运行 `opencode` 命令 |
+| API endpoint | `https://api.jingxing.uk/v1` |
+| 井陉令牌 | 在“令牌管理”中创建的 `sk-` 开头令牌 |
+| 模型名称 | 当前令牌可用的模型名称，以控制台显示为准 |
+
+> OpenCode 的 OpenAI-compatible provider 需要填写包含 `/v1` 的 API endpoint。接入井陉时请使用 `https://api.jingxing.uk/v1`。
+
+## 安装 OpenCode
+
+如本机尚未安装 OpenCode，可使用官方安装脚本：
+
+```bash
+curl -fsSL https://opencode.ai/install | bash
+```
+
+也可以使用 npm 或 Homebrew 安装：
+
+```bash
+npm install -g opencode-ai
+```
+
+```bash
+brew install anomalyco/tap/opencode
+```
+
+安装完成后执行：
+
+```bash
+opencode --version
+```
+
+如果能够输出版本号，说明 OpenCode 已可在当前终端中使用。
+
+## 接入流程
+
+```text
+创建 OpenCode 专用令牌
+  -> 在 OpenCode 中添加自定义 provider 凭证
+  -> 写入 opencode.json
+  -> 选择井陉模型
+  -> 发送测试请求
+  -> 在井陉控制台查看调用记录
+```
+
+## 如何接入
+
+### 1. 创建 OpenCode 专用令牌
+
+进入井陉控制台：
+
+```txt
+令牌管理 -> 新建令牌
+```
+
+建议命名为 `opencode-mac`、`opencode-work`、`opencode-project` 等便于识别的名称。后续查看消耗、停用令牌或排查请求时，可以直接定位到对应客户端。
+
+### 2. 添加自定义 provider 凭证
+
+进入项目目录并启动 OpenCode：
+
+```bash
+cd /path/to/your/project
+opencode
+```
+
+在 OpenCode 界面中执行：
+
+```txt
+/connect
+```
+
+选择 `Other`，并按提示填写：
+
+| 项目 | 建议填写 |
+| --- | --- |
+| Provider ID | `jingxing` |
+| API Key | 井陉控制台生成的 `sk-` 开头令牌 |
+
+`Provider ID` 会在后续 `opencode.json` 中使用。建议保持为 `jingxing`，避免凭证和配置文件中的 provider 名称不一致。
+
+### 3. 配置 opencode.json
+
+在项目根目录创建或更新 `opencode.json`：
+
+```json title="opencode.json"
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "jingxing": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Jingxing",
+      "options": {
+        "baseURL": "https://api.jingxing.uk/v1"
+      },
+      "models": {
+        "gpt-4.1": {
+          "name": "gpt-4.1"
+        }
+      }
+    }
+  },
+  "model": "jingxing/gpt-4.1"
+}
+```
+
+字段说明：
+
+| 字段 | 说明 |
+| --- | --- |
+| `provider.jingxing` | 自定义 provider，名称需要与 `/connect` 中填写的 Provider ID 一致 |
+| `npm` | OpenAI 兼容接口使用 `@ai-sdk/openai-compatible` |
+| `options.baseURL` | 井陉 API endpoint，需要包含 `/v1` |
+| `models` | 在 OpenCode 中展示的模型列表 |
+| `model` | OpenCode 默认使用的模型，格式为 `provider/model` |
+
+请将示例中的 `gpt-4.1` 替换为井陉控制台中当前令牌可用的模型名称。首次接入建议只配置一个模型完成验证，确认链路正常后再增加其他模型。
+
+### 4. 选择模型
+
+回到 OpenCode，执行：
+
+```txt
+/models
+```
+
+在模型列表中选择 `Jingxing` 下的目标模型。如果列表中没有看到目标模型，请检查 `opencode.json` 中的 `models` 配置和 provider 名称是否一致。
+
+### 5. 发送测试请求
+
+在 OpenCode 中发送一条简单请求：
+
+```txt
+请用三句话总结这个项目的目录结构。
+```
+
+如果 OpenCode 能正常返回，并且井陉控制台中出现调用记录，说明接入已经完成。
+
+## 使用环境变量保存令牌
+
+如果不希望通过 `/connect` 保存凭证，也可以使用环境变量方式。先在终端中设置：
+
+```bash
+export JINGXING_API_KEY="<你的井陉令牌>"
+```
+
+然后在 `opencode.json` 中加入 `apiKey`：
+
+```json title="opencode.json"
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "jingxing": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Jingxing",
+      "options": {
+        "baseURL": "https://api.jingxing.uk/v1",
+        "apiKey": "{env:JINGXING_API_KEY}"
+      },
+      "models": {
+        "gpt-4.1": {
+          "name": "gpt-4.1"
+        }
+      }
+    }
+  },
+  "model": "jingxing/gpt-4.1"
+}
+```
+
+请勿把真实令牌写入公开文档、截图、代码仓库或聊天记录中。如果 `opencode.json` 会提交到 Git，建议使用环境变量或 `/connect` 保存凭证，不要在配置文件中明文写入令牌。
+
+## 全局配置方式
+
+如果希望所有项目都默认使用井陉，可以把配置放到全局配置文件：
+
+```txt
+~/.config/opencode/opencode.json
+```
+
+如果只希望某个项目使用井陉，建议把 `opencode.json` 放在该项目根目录。项目级配置优先级更高，适合按项目选择不同模型或权限边界。
+
+## 验证方法
+
+推荐按以下顺序验证：
+
+1. 执行 `opencode --version`，确认 OpenCode 已安装。
+2. 执行 `opencode auth list`，确认 `jingxing` 凭证已存在。
+3. 检查 `opencode.json` 中是否存在 `provider.jingxing`。
+4. 确认 `options.baseURL` 为 `https://api.jingxing.uk/v1`。
+5. 执行 `/models`，选择 `Jingxing` 下的目标模型。
+6. 发送一条测试请求。
+7. 回到井陉控制台查看调用记录和额度消耗。
+
+## 注意事项
+
+- `baseURL` 需要填写 `https://api.jingxing.uk/v1`，不要省略 `/v1`。
+- `provider` 名称需要与 `/connect` 中填写的 Provider ID 保持一致。
+- 模型名称需要与井陉控制台显示一致。
+- 不建议多个客户端共用同一枚高权限令牌。
+- 不建议把真实令牌提交到项目仓库。
+- 如果某个模型依赖 Responses 风格接口，请先在井陉控制台确认该模型和接口当前可用。
+
+## 常见问题
+
+### Base URL 应该填写什么
+
+填写：
+
+```txt
+https://api.jingxing.uk/v1
+```
+
+OpenCode 的 OpenAI-compatible provider 会基于该地址请求 OpenAI 兼容接口，因此这里需要包含 `/v1`。
+
+### 执行 `/models` 看不到 Jingxing
+
+请检查：
+
+- `opencode.json` 是否位于当前项目根目录，或是否已放入全局配置目录。
+- `provider` 中是否存在 `jingxing`。
+- `/connect` 中填写的 Provider ID 是否也是 `jingxing`。
+- JSON 格式是否正确，例如引号、逗号和括号是否完整。
+
+### 提示 401 或 403
+
+常见原因包括：
+
+- 令牌填写错误或已经失效。
+- 当前令牌没有目标模型权限。
+- 令牌额度不足或被停用。
+- `Provider ID` 与 `opencode.json` 中的 provider 名称不一致。
+
+建议先在井陉控制台确认令牌状态和可用模型，再重新启动 OpenCode 验证。
+
+### 模型名称应该怎么写
+
+以井陉控制台显示为准。`models` 中的 key 是实际请求使用的模型名称，`name` 是在 OpenCode 中展示的名称。通常保持两者一致即可。
+
+示例：
+
+```json
+"models": {
+  "gpt-4.1": {
+    "name": "gpt-4.1"
+  }
+}
+```
+
+默认模型需要写成：
+
+```json
+"model": "jingxing/gpt-4.1"
+```
+
+### 如何确认请求是否经过井陉
+
+最直接的方式是在井陉控制台查看调用记录。如果 OpenCode 返回成功，但控制台没有记录，通常说明当前配置仍在使用其他 provider，或当前项目没有加载包含 `jingxing` 的 `opencode.json`。
+
+## 官方参考
+
+- [OpenCode Intro](https://opencode.ai/docs/)
+- [OpenCode Config](https://opencode.ai/docs/config/)
+- [OpenCode Providers](https://opencode.ai/docs/providers/)
+- [OpenCode GitHub Releases](https://github.com/anomalyco/opencode/releases)
+
+## 继续阅读
+
+- [OpenAI Codex](/docs/integrations/openai-codex)
+- [Claude Code](/docs/integrations/claude-code)
+- [令牌管理](/docs/platform/token-management)
