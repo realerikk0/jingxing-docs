@@ -1,134 +1,205 @@
 ---
 title: "Lobe Chat"
-description: "在 Lobe Chat 中通过 OpenAI 兼容方式接入井陉"
+description: "在 Lobe Chat 中配置井陉 API、令牌和模型"
 sidebar_position: 5
 ---
 
 # Lobe Chat
 
-Lobe Chat 适合构建完整的 Web 聊天前端，并通过 OpenAI 兼容接口统一接入井陉。对于井陉而言，Lobe Chat 的推荐方式为自部署方案；若使用官方托管版本，则应先确认当前版本是否允许完整覆盖 OpenAI provider 的 API Key 与 Base URL。
+Lobe Chat 是一款网页端 AI 聊天应用，也支持自部署为团队或个人的聊天前端。它可以通过 OpenAI provider 接入 OpenAI 兼容接口。接入井陉后，用户可以在 Lobe Chat 中使用井陉令牌调用可用模型，并在井陉控制台查看调用记录与额度消耗。
+
+## 打开 Lobe Chat
+
+如果只是快速体验，可以直接使用 LobeHub 官方应用：
+
+- [Lobe Chat 官方应用](https://app.lobehub.com/)
+- [LobeHub 下载页](https://lobehub.com/downloads/)
+
+如需要长期作为团队聊天入口，建议使用自部署版本。自部署版本可以通过环境变量固定 API endpoint、令牌和模型列表，更适合稳定管理和统一维护。
 
 ## 适用场景
 
-- 需要完整的聊天前端，并统一接入井陉
-- 需要在自部署环境中管理模型、令牌和访问路径
-- 需要为后续图像、音频或 RAG 能力扩展预留空间
+- 希望在浏览器中快速使用井陉模型。
+- 希望搭建一个统一的 Web 聊天前端。
+- 希望把聊天记录、模型选择和常用助手集中在 Lobe Chat 中管理。
+- 希望通过井陉令牌统一查看调用、额度和消耗。
 
 ## 前置条件
 
-请先准备以下信息：
+开始前，请先准备以下信息：
 
-- Base URL：`https://api.jingxing.uk/v1`
-- API Key：专门用于 Lobe Chat 的井陉令牌
-- 模型名称：当前分组下已经验证可用的模型
+| 项目 | 说明 |
+| --- | --- |
+| Lobe Chat | 可使用官方应用，或已有自部署环境 |
+| API endpoint | `https://api.jingxing.uk/v1` |
+| 井陉令牌 | 在“令牌管理”中创建的 `sk-` 开头令牌 |
+| 模型名称 | 当前令牌可用的模型名称，以控制台显示为准 |
 
-## 部署形态说明
+建议为 Lobe Chat 单独创建令牌，不要复用生产服务、团队共享或其他客户端正在使用的高权限令牌。
 
-### 官方托管版
+## 接入方式总览
 
-若使用 Lobe Chat 官方托管版本，应优先确认当前设置页面是否允许完整配置 OpenAI provider 的 API Key 与 Base URL。若当前版本仅允许有限配置，则不适合作为统一接入井陉的长期方案。
+| 方式 | 适合场景 | 配置方式 |
+| --- | --- | --- |
+| 控制台一键打开 | 快速体验、个人使用 | 从“令牌管理”的聊天入口打开 |
+| 自部署配置 | 长期使用、团队入口、固定配置 | 设置 `OPENAI_API_KEY` 和 `OPENAI_PROXY_URL` |
 
-### 自部署版
+## 方式一：从控制台一键打开
 
-自部署版是更推荐的接入方式。根据 LobeHub 官方文档，Lobe Chat 可通过 OpenAI 相关环境变量接入兼容接口，其中最关键的变量为：
+如果你只需要快速打开 Lobe Chat，可以从井陉控制台进入：
 
-- `OPENAI_API_KEY`
-- `OPENAI_PROXY_URL`
+```txt
+令牌管理 -> 选择一个令牌 -> 聊天下拉菜单 -> Lobe Chat 官方示例
+```
 
-## 官方界面示意
+系统会根据当前令牌生成对应的打开链接，并尝试把配置带入 Lobe Chat。建议使用新窗口打开 `app.lobehub.com`，如果页面要求登录，请先完成 Lobe Cloud 登录。
+
+适合这种方式的情况：
+
+- 只需要快速验证聊天是否可用。
+- 不想先部署自己的 Lobe Chat。
+- 接受官方应用的登录、配置和页面行为。
+
+如果打开后没有出现目标模型，或配置没有自动生效，请改用下方自部署方式进行固定配置。
+
+## 方式二：自部署接入
+
+自部署适合长期使用。它可以把井陉 endpoint、令牌和模型列表写入部署环境，避免每个用户重复手动配置。
+
+### 1. 创建 Lobe Chat 专用令牌
+
+进入井陉控制台：
+
+```txt
+令牌管理 -> 新建令牌
+```
+
+建议命名为 `lobe-chat`、`lobe-web`、`lobe-team` 等便于识别的名称。后续查看 Lobe Chat 消耗、停用令牌或排查请求时，可以直接定位到对应令牌。
+
+### 2. 设置 OpenAI provider 环境变量
+
+在 Lobe Chat 的自部署环境中设置：
+
+```bash title=".env"
+OPENAI_API_KEY="<你的井陉令牌>"
+OPENAI_PROXY_URL="https://api.jingxing.uk/v1"
+```
+
+其中：
+
+| 变量 | 说明 |
+| --- | --- |
+| `OPENAI_API_KEY` | 井陉令牌，例如 `sk-...` |
+| `OPENAI_PROXY_URL` | 井陉 API endpoint，需要包含 `/v1` |
+
+请勿把真实令牌写入公开文档、截图、代码仓库或聊天记录中。
+
+### 3. 配置模型列表
+
+如果 Lobe Chat 没有自动显示目标模型，可以使用 `OPENAI_MODEL_LIST` 显式控制模型列表：
+
+```bash title=".env"
+OPENAI_MODEL_LIST="-all,+<模型名称>"
+```
+
+示例：
+
+```bash title=".env"
+OPENAI_MODEL_LIST="-all,+gpt-4.1"
+```
+
+模型名称必须与井陉控制台显示一致。首次验证建议只添加一个模型，确认链路正常后再逐步扩展。
+
+### 4. 重启 Lobe Chat
+
+修改环境变量后，需要重新启动或重新部署 Lobe Chat。完成后进入 Lobe Chat 页面，选择 OpenAI provider 下的目标模型，并发送一条测试消息：
+
+```txt
+请用一句话介绍你自己。
+```
+
+如果 Lobe Chat 能正常返回，并且井陉控制台中出现调用记录，说明接入已经完成。
+
+## 界面示意
 
 以下界面示意来自 LobeHub 官方文档的模型服务商环境变量章节，用于说明接入兼容网关时需要关注的核心变量。
 
 ![Lobe Chat 模型服务商环境变量示意](/img/integrations/lobe-model-provider-doc.png)
 
-与井陉接入最直接相关的字段包括：
+与井陉接入直接相关的字段包括：
 
-- `OPENAI_API_KEY`：填写井陉令牌
-- `OPENAI_PROXY_URL`：填写 `https://api.jingxing.uk/v1`
-- 其余变量仅在需要混合接入其他 provider 时再逐步启用
-
-## 配置步骤
-
-### 1. 在井陉侧创建 Lobe Chat 专用令牌
-
-建议配置如下：
-
-- 名称：如 `lobe-web`
-- 分组：适合 Web 聊天前端的分组
-- 模型限制：仅开放计划在 Lobe Chat 中使用的模型
-- 额度：覆盖验证与日常使用需求
-
-### 2. 在自部署环境中设置变量
-
-```bash
-OPENAI_API_KEY=<YOUR_JINGXING_TOKEN>
-OPENAI_PROXY_URL=https://api.jingxing.uk/v1
-```
-
-首次接入建议仅保留以上最小变量组合，避免同时引入过多历史配置或其他 provider 设置。
-
-### 3. 首次仅验证一个模型
-
-启动或重启服务后，建议仅选择一个模型进行验证，确认模型列表、令牌权限与主链路均正常后，再扩展更多模型或能力。
-
-## 模型选择建议
-
-Lobe Chat 作为通用聊天前端，建议优先考虑：
-
-1. 对话稳定性
-2. 响应速度
-3. 长上下文表现
-4. 成本可控性
-
-首次接入不建议直接选择高成本模型。
+- `OPENAI_API_KEY`：填写井陉令牌。
+- `OPENAI_PROXY_URL`：填写 `https://api.jingxing.uk/v1`。
+- `OPENAI_MODEL_LIST`：用于控制 Lobe Chat 中可见的模型列表。
 
 ## 验证方法
 
-建议按以下顺序完成验证：
+推荐按以下顺序验证：
 
-1. 在命令行中使用当前令牌执行 `GET /v1/models`
-2. 配置 `OPENAI_API_KEY` 与 `OPENAI_PROXY_URL`
-3. 启动或重启 Lobe Chat
-4. 在界面中仅选择一个模型
-5. 发起一次简单对话请求
+1. 在井陉控制台确认令牌处于启用状态。
+2. 确认 `OPENAI_API_KEY` 已设置为井陉令牌。
+3. 确认 `OPENAI_PROXY_URL` 已设置为 `https://api.jingxing.uk/v1`。
+4. 如需固定模型，确认 `OPENAI_MODEL_LIST` 中的模型名称正确。
+5. 重启或重新部署 Lobe Chat。
+6. 在 Lobe Chat 中选择目标模型并发送测试消息。
+7. 回到井陉控制台查看调用记录和额度消耗。
+
+## 注意事项
+
+- 官方托管版更适合快速体验；长期团队使用建议自部署。
+- 自部署环境变量修改后通常需要重启或重新部署才会生效。
+- `OPENAI_PROXY_URL` 需要包含 `/v1`，否则可能出现空响应或请求路径错误。
+- 模型名称必须与井陉控制台显示一致，不要自行改写大小写、前缀或后缀。
+- 不建议在同一个部署中混用多个不相关用途的令牌。
 
 ## 常见问题
 
-### 模型列表异常
+### 官方应用可以直接使用吗
 
-建议优先检查：
+可以用于快速体验。建议从井陉控制台的“聊天下拉菜单”打开 `Lobe Chat 官方示例`，系统会尝试带入当前令牌对应的配置。若需要长期稳定使用，建议自部署。
 
-- 当前环境变量是否已生效
-- 当前令牌是否限制了模型
-- 当前分组是否开放目标模型
+### 自部署时 Base URL 应该填写什么
 
-### 页面可访问，但聊天失败
+在 Lobe Chat 的环境变量中填写：
 
-建议排查：
+```txt
+OPENAI_PROXY_URL=https://api.jingxing.uk/v1
+```
 
-- `OPENAI_PROXY_URL` 是否准确填写为 `https://api.jingxing.uk/v1`
-- `OPENAI_API_KEY` 是否为当前有效令牌
-- 当前模型是否已经完成独立验证
+LobeHub 官方文档说明，`OPENAI_PROXY_URL` 用于覆盖默认 OpenAI API 请求基础 URL。井陉的 OpenAI 兼容接口位于 `/v1`，因此这里需要包含 `/v1`。
 
-### 自部署升级后行为变化
+### 模型列表中没有目标模型
 
-此类问题通常与前端版本、provider 配置方式或环境变量处理变化有关。建议先使用最小变量组合重新验证，再逐步恢复其他配置。
+请检查：
 
-## 实践建议
+- 当前令牌是否有目标模型权限。
+- `OPENAI_MODEL_LIST` 是否隐藏了目标模型。
+- 模型名称是否与井陉控制台显示一致。
+- 修改环境变量后是否已经重启或重新部署。
 
-- 优先使用自部署版
-- 首先完成 OpenAI provider 主链路验证
-- 为 Lobe Chat 单独签发令牌
-- 首次仅配置少量模型
-- 出现问题时，优先以命令行请求排除 API 侧问题
+### 页面可以打开，但聊天失败
+
+常见原因包括：
+
+- `OPENAI_API_KEY` 不是有效的井陉令牌。
+- `OPENAI_PROXY_URL` 没有包含 `/v1`。
+- 当前模型不可用或令牌无权限。
+- 部署环境没有读取到最新环境变量。
+
+建议先用一个已确认可调用的模型完成最小验证，再继续排查目标模型。
+
+### 如何确认请求是否经过井陉
+
+最直接的方式是在井陉控制台查看调用记录。若 Lobe Chat 返回成功，但控制台没有记录，通常说明当前页面没有使用井陉 endpoint，或正在使用其他 provider 配置。
 
 ## 官方参考
 
-- [LobeHub Docs: Using OpenAI API Key in LobeChat](https://lobehub.com/docs/usage/providers/openai)
-- [LobeHub Docs: Self-hosting Model Provider Environment Variables](https://lobehub.com/docs/self-hosting/environment-variables/model-provider/)
+- [LobeHub: Using OpenAI in LobeHub](https://lobehub.com/docs/usage/providers/openai)
+- [LobeHub: Model Service Providers](https://lobehub.org.cn/docs/self-hosting/environment-variables/model-provider)
+- [LobeHub Downloads](https://lobehub.com/downloads/)
 
 ## 继续阅读
 
 - [Cherry Studio](/docs/integrations/cherry-studio)
 - [Open WebUI](/docs/integrations/open-webui)
-- [错误与重试](/docs/platform/errors-and-retries)
+- [令牌管理](/docs/platform/token-management)
