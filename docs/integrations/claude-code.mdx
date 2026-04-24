@@ -1,133 +1,249 @@
 ---
 title: "Claude Code"
-description: "在 Claude Code 企业代理或网关架构中接入井陉"
+description: "在 Claude Code 中配置井陉 API endpoint、令牌和模型"
 sidebar_position: 1
 ---
 
 # Claude Code
 
-Claude Code 是 Anthropic 提供的终端编码工具。对于井陉而言，推荐的接入方式并非让每位开发者直接维护多家上游凭据，而是在组织内部通过企业代理或 LLM Gateway 统一接入，再由网关层路由至井陉。
+Claude Code 是 Anthropic 提供的命令行编码助手，可以在终端中阅读项目、解释代码、修改文件、生成测试、排查问题并协助提交变更。接入井陉后，可通过井陉统一访问可用的 Claude 系模型，并使用井陉令牌进行鉴权和计费。
 
 ## 适用场景
 
-- 团队已经具备 Claude Code 的企业代理或网关方案
-- 希望统一管理鉴权、审计、模型路由与成本
-- 需要在 Claude Code 之外，同时管理其他模型渠道
-
-## 基本原则
-
-Claude Code 的官方支持路径通常包括：
-
-- Anthropic 官方 API
-- Amazon Bedrock
-- Google Vertex AI
-- 企业代理或 LLM Gateway
-
-井陉在此体系中更适合作为“统一模型网关”存在，而不是每个终端直接维护多个上游供应商配置。
-
-## 推荐架构
-
-```text
-Claude Code
-  -> 企业代理 / LLM gateway
-    -> Jingxing
-      -> Claude 渠道与其他模型渠道
-```
-
-该方式的主要收益包括：
-
-- 统一鉴权与权限管理
-- 统一调用日志与用量审计
-- 统一模型暴露范围与分组策略
+- 希望在终端中直接使用 AI 编码助手。
+- 希望通过井陉令牌接入 Claude 系模型。
+- 希望把 Claude Code 的调用、消耗和权限统一纳入井陉控制台管理。
+- 希望为不同项目或设备单独配置令牌，避免共用同一个高权限密钥。
 
 ## 前置条件
 
-开始配置前，建议确认以下条件已经满足：
+开始前，请先准备以下信息：
 
-1. 井陉侧已启用至少一个 Claude 模型渠道
-2. 当前分组允许对应模型对外可见
-3. 已为团队或环境准备专用令牌
-4. Claude Code 当前部署方式支持企业代理或 LLM Gateway
+| 项目 | 说明 |
+| --- | --- |
+| Claude Code | 已在本机安装并可运行 `claude` 命令 |
+| API endpoint | `https://api.jingxing.uk` |
+| 井陉令牌 | 在“令牌管理”中创建的 `sk-` 开头令牌 |
+| 模型名称 | 当前令牌可用的 Claude 模型名称，例如 `claude-sonnet-4-6`，以控制台显示为准 |
 
-## 井陉侧准备步骤
+> Claude Code 会在 `ANTHROPIC_BASE_URL` 后自动请求 Claude Messages 路径。配置井陉时请填写根地址 `https://api.jingxing.uk`，不要填写成 `https://api.jingxing.uk/v1`。
 
-### 1. 确认 Claude 能力可用
+## 安装 Claude Code
 
-在控制台中检查以下信息：
+如本机尚未安装 Claude Code，可参考官方安装方式。
 
-- Claude 渠道处于启用状态
-- 分组已开放目标模型
-- 令牌具备对应调用权限
+macOS、Linux、WSL：
 
-### 2. 创建独立令牌
+```bash
+curl -fsSL https://claude.ai/install.sh | bash
+```
 
-建议为 Claude Code 所在环境单独创建令牌，避免与个人测试、桌面客户端或生产 API 服务混用。
+macOS 也可以使用 Homebrew：
 
-### 3. 在组织网关层对接井陉
+```bash
+brew install --cask claude-code
+```
 
-若团队已经存在内部 LLM Gateway，建议在该层统一接入井陉，并由该层转发 Claude Code 请求。该方式优于让每位开发者直接管理不同上游配置。
+Windows PowerShell：
 
-## Claude Code 侧配置建议
+```powershell
+irm https://claude.ai/install.ps1 | iex
+```
 
-建议采用以下做法：
+安装完成后，在终端中执行：
 
-- 使用 Claude Code 的最新稳定版本
-- 按 Anthropic 官方文档启用企业代理或 LLM Gateway
-- 通过团队统一出口访问井陉
+```bash
+claude --version
+```
 
-不建议采用以下做法：
+如果能够输出版本号，说明本机已可以启动 Claude Code。
 
-- 每台机器单独维护上游厂商私钥
-- 将生产令牌分散在个人终端环境中
-- 将临时验证方案直接用于团队级环境
+## 接入流程
+
+```text
+创建井陉令牌
+  -> 确认可用 Claude 模型
+  -> 配置 Claude Code 环境变量
+  -> 启动 Claude Code
+  -> 选择模型并发送测试请求
+```
+
+## 如何接入
+
+### 1. 创建 Claude Code 专用令牌
+
+进入井陉控制台：
+
+```txt
+令牌管理 -> 新建令牌
+```
+
+建议为 Claude Code 单独创建一个令牌，例如 `claude-code-mac`、`claude-code-work`。这样后续查看消耗、停用令牌或排查问题时更清晰。
+
+### 2. 确认可用模型
+
+在控制台中确认当前令牌可以使用的 Claude 模型。首次接入建议只选择一个模型完成验证，例如：
+
+```txt
+claude-sonnet-4-6
+```
+
+具体模型名称以控制台和当前令牌权限为准。
+
+### 3. 在当前终端配置 endpoint 和令牌
+
+在启动 Claude Code 之前，先在同一个终端窗口中设置以下环境变量：
+
+```bash
+export ANTHROPIC_BASE_URL="https://api.jingxing.uk"
+export ANTHROPIC_AUTH_TOKEN="<你的井陉令牌>"
+export ANTHROPIC_MODEL="<模型名称>"
+```
+
+示例：
+
+```bash
+export ANTHROPIC_BASE_URL="https://api.jingxing.uk"
+export ANTHROPIC_AUTH_TOKEN="sk-..."
+export ANTHROPIC_MODEL="claude-sonnet-4-6"
+```
+
+其中：
+
+- `ANTHROPIC_BASE_URL`：井陉 API endpoint。
+- `ANTHROPIC_AUTH_TOKEN`：井陉令牌，Claude Code 会作为 `Authorization: Bearer ...` 发送。
+- `ANTHROPIC_MODEL`：默认使用的模型名称。
+
+请勿把真实令牌写入公开文档、截图、代码仓库或聊天记录中。
+
+### 4. 启动 Claude Code
+
+进入需要处理的项目目录，然后启动 Claude Code：
+
+```bash
+cd /path/to/your/project
+claude
+```
+
+进入 Claude Code 后，可以先发送一个简单请求：
+
+```txt
+请用三句话总结这个项目的用途。
+```
+
+如请求成功，说明 Claude Code 已经通过井陉完成调用。
+
+### 5. 在 Claude Code 中选择模型
+
+Claude Code 支持在会话中切换模型：
+
+```txt
+/model
+```
+
+也可以在启动时指定模型：
+
+```bash
+claude --model claude-sonnet-4-6
+```
+
+如果模型选择器中没有显示目标模型，可以继续使用 `ANTHROPIC_MODEL` 指定模型名称。模型是否可用，以井陉控制台和当前令牌权限为准。
+
+## 长期配置方式
+
+如果不希望每次启动前手动输入环境变量，可以写入 Claude Code 的用户配置文件：
+
+```json title="~/.claude/settings.json"
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "https://api.jingxing.uk",
+    "ANTHROPIC_AUTH_TOKEN": "<你的井陉令牌>",
+    "ANTHROPIC_MODEL": "<模型名称>"
+  }
+}
+```
+
+建议优先使用用户级配置 `~/.claude/settings.json`。不要把包含真实令牌的配置写入项目仓库，也不要提交到 Git。
 
 ## 验证方法
 
-接入完成后，可使用简单请求进行验证，例如：
+完成配置后，建议按以下顺序验证：
 
-```bash
-claude -p "用三句话总结当前仓库的用途。"
-```
-
-验证时建议同时确认：
-
-- Claude Code 是否可以正常发起请求
-- 井陉侧是否能够记录到调用日志
-- 分组、额度和模型权限是否按预期生效
+1. 执行 `claude --version`，确认 Claude Code 已安装。
+2. 在同一终端中执行 `echo $ANTHROPIC_BASE_URL`，确认 endpoint 已生效。
+3. 启动 `claude`，发送一个简单问题。
+4. 在井陉控制台查看调用记录和额度消耗。
+5. 如需切换模型，在 Claude Code 中执行 `/model` 或重新设置 `ANTHROPIC_MODEL`。
 
 ## 常见问题
 
-### 请求未经过井陉
+### Base URL 应该填写 `/v1` 吗
 
-此类问题通常说明 Claude Code 仍在使用默认官方路径。应优先检查企业代理或网关配置是否已生效。
+不需要。Claude Code 会基于 `ANTHROPIC_BASE_URL` 请求 Claude Messages 接口。配置井陉时填写：
 
-### 令牌有效，但调用仍失败
+```txt
+https://api.jingxing.uk
+```
 
-建议依次排查：
+不要填写：
 
-- Claude Code 当前部署方式是否支持该接入方案
-- 企业代理是否正确转发到井陉
-- 网络、证书或组织策略是否阻断请求
+```txt
+https://api.jingxing.uk/v1
+```
 
-### 团队内只有部分成员可用
+如果把 `/v1` 写进 Base URL，可能导致请求路径异常。
 
-此类问题通常与环境变量、代理设置、证书或企业网络策略差异有关。建议先统一入口，再排查个别终端差异。
+### 已设置令牌，但仍然要求登录
 
-## 实践建议
+请确认环境变量是在启动 `claude` 的同一个终端窗口中设置的。可以先执行：
 
-- 采用企业代理或网关层统一接入
-- 为团队环境单独签发令牌
-- 在井陉侧单独管理 Claude 模型分组
-- 以组织级治理方式管理调用策略和审计边界
+```bash
+echo $ANTHROPIC_BASE_URL
+echo $ANTHROPIC_MODEL
+```
+
+如输出为空，说明当前终端没有加载配置。请重新设置环境变量，或写入 `~/.claude/settings.json`。
+
+### 提示 401 或 403
+
+常见原因包括：
+
+- 令牌填写错误或已失效。
+- 当前令牌没有目标模型权限。
+- 令牌额度不足或被禁用。
+- 模型名称填写错误。
+
+建议先在井陉控制台确认令牌状态和可用模型，再重新启动 Claude Code。
+
+### 模型选择器里看不到目标模型
+
+部分模型不会自动出现在 Claude Code 的模型选择器中。可先通过环境变量固定模型：
+
+```bash
+export ANTHROPIC_MODEL="<模型名称>"
+```
+
+如果需要在模型选择器中展示自定义名称，可以使用 Claude Code 的自定义模型选项：
+
+```bash
+export ANTHROPIC_CUSTOM_MODEL_OPTION="<模型名称>"
+export ANTHROPIC_CUSTOM_MODEL_OPTION_NAME="Jingxing Claude"
+export ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION="通过井陉接入的 Claude 模型"
+```
+
+### 如何确认请求是否经过井陉
+
+最直接的方式是在井陉控制台查看调用记录。如果 Claude Code 请求成功，但控制台没有记录，通常说明当前终端没有使用井陉 endpoint，或启动 Claude Code 时未加载对应环境变量。
 
 ## 官方参考
 
-- [Anthropic: Claude Code getting started](https://docs.anthropic.com/en/docs/claude-code/getting-started)
-- [Anthropic: Claude Code LLM gateway configuration](https://docs.anthropic.com/en/docs/claude-code/llm-gateway)
-- [Anthropic: Claude Code corporate proxy configuration](https://docs.anthropic.com/en/docs/claude-code/corporate-proxy)
+- [Claude Code Quickstart](https://code.claude.com/docs/en/quickstart)
+- [Claude Code Environment variables](https://code.claude.com/docs/en/env-vars)
+- [Claude Code Model configuration](https://code.claude.com/docs/en/model-config)
+- [Claude Code LLM gateway configuration](https://docs.anthropic.com/en/docs/claude-code/llm-gateway)
 
 ## 继续阅读
 
 - [Cursor](/docs/integrations/cursor)
-- [Cherry Studio](/docs/integrations/cherry-studio)
+- [OpenAI Codex](/docs/integrations/openai-codex)
 - [令牌管理](/docs/platform/token-management)
