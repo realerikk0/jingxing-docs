@@ -23,6 +23,12 @@ const sidebars: SidebarsConfig = {
         },
         {
           type: 'doc',
+          id: 'getting-started/how-to-chat',
+          label: '如何聊天',
+          className: 'sidebar-icon-chat-item',
+        },
+        {
+          type: 'doc',
           id: 'getting-started/api-quickstart',
           label: 'API 快速开始',
           className: 'sidebar-icon-api-quickstart',
