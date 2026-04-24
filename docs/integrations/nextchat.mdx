@@ -1,137 +1,273 @@
 ---
 title: "NextChat"
-description: "在 NextChat 中通过 OpenAI 兼容配置接入井陉"
+description: "在 NextChat 中配置井陉 API、令牌和模型"
 sidebar_position: 7
 ---
 
 # NextChat
 
-NextChat 是一个轻量、自部署友好的聊天前端，适合通过 OpenAI 兼容方式接入井陉。对于井陉而言，推荐优先使用自部署环境变量方案完成接入，而不是在首轮接入时同时混用多个 provider。
+NextChat 是一款轻量级 AI 聊天前端，支持 Web、自部署以及多端应用形态。它可以通过 OpenAI provider 接入 OpenAI 兼容接口。接入井陉后，用户可以在 NextChat 中使用井陉令牌调用可用模型，并在井陉控制台查看调用记录与额度消耗。
+
+## 打开或部署 NextChat
+
+如果只是了解项目，可以先查看官方入口：
+
+- [NextChat 官网](https://nextchat.dev/)
+- [NextChat GitHub](https://github.com/ChatGPTNextWeb/NextChat)
+- [NextChat 自部署文档](https://docs.nextchat.dev/quickstart/selfhost/env)
+
+如需要稳定接入井陉，推荐使用自部署方式。自部署可以通过环境变量固定 API 地址、令牌和模型列表，避免每个用户重复手动配置。
 
 ## 适用场景
 
-- 需要轻量级、自部署的聊天前端
-- 需要通过 OpenAI 兼容接口接入井陉
-- 需要快速建立聊天主链路
+- 希望部署一个轻量级 Web 聊天前端。
+- 希望通过 OpenAI 兼容接口接入井陉模型。
+- 希望用较少配置快速建立聊天主链路。
+- 希望通过访问密码控制谁可以使用该 NextChat 实例。
 
 ## 前置条件
 
-请先准备以下信息：
+开始前，请先准备以下信息：
 
-- Base URL：`https://api.jingxing.uk/v1`
-- API Key：专门用于 NextChat 的井陉令牌
-- 模型名称：至少一个已经验证可用的模型
+| 项目 | 说明 |
+| --- | --- |
+| NextChat | 已自部署，或准备通过 Docker / Vercel 部署 |
+| API Base URL | `https://api.jingxing.uk` |
+| API Key | 在“令牌管理”中创建的 `sk-` 开头令牌 |
+| 模型名称 | 当前令牌可用的模型名称，以控制台显示为准 |
 
-## 推荐接入方式
+> 注意：NextChat 的 `BASE_URL` 默认值是 `https://api.openai.com`，它会在请求时自动拼接 `v1/chat/completions`、`v1/models` 等路径。因此接入井陉时应填写 `https://api.jingxing.uk`，不要填写 `https://api.jingxing.uk/v1`，否则可能出现 `/v1/v1/...` 路径错误。
 
-根据 NextChat 官方文档，自部署场景下最基础且稳定的接入方式为使用以下环境变量：
+建议为 NextChat 单独创建令牌，不要复用生产服务、团队共享或其他客户端正在使用的高权限令牌。
 
-- `OPENAI_API_KEY`
-- `BASE_URL`
+## 接入流程
 
-井陉优先提供 OpenAI 兼容接口，因此该路径与 NextChat 的默认配置方式匹配度较高。
+```text
+创建 NextChat 专用令牌
+  -> 设置 OPENAI_API_KEY
+  -> 设置 BASE_URL
+  -> 按需设置 CODE 和 CUSTOM_MODELS
+  -> 重新部署或重启 NextChat
+  -> 发送测试消息
+```
 
-## 官方界面示意
+## 如何接入
+
+### 1. 创建 NextChat 专用令牌
+
+进入井陉控制台：
+
+```txt
+令牌管理 -> 新建令牌
+```
+
+建议命名为 `nextchat`、`nextchat-web`、`nextchat-team` 等便于识别的名称。后续查看 NextChat 消耗、停用令牌或排查请求时，可以直接定位到对应令牌。
+
+### 2. 配置最小环境变量
+
+在 NextChat 的部署环境中设置：
+
+```bash title=".env"
+OPENAI_API_KEY="<你的井陉令牌>"
+BASE_URL="https://api.jingxing.uk"
+```
+
+其中：
+
+| 变量 | 说明 |
+| --- | --- |
+| `OPENAI_API_KEY` | 井陉令牌，例如 `sk-...` |
+| `BASE_URL` | 井陉 API 根地址，不要包含 `/v1` |
+
+请勿把真实令牌写入公开文档、截图、代码仓库或聊天记录中。
+
+### 3. 设置访问密码
+
+如果该 NextChat 实例会对外开放，建议设置访问密码：
+
+```bash title=".env"
+CODE="your-password"
+```
+
+多个访问密码可以用英文逗号分隔：
+
+```bash title=".env"
+CODE="team-a,team-b"
+```
+
+这样用户访问 NextChat 时需要输入访问密码，避免公开页面被无关人员使用。
+
+### 4. 限制模型列表
+
+NextChat 默认会显示一批内置模型。为了减少误选，建议使用 `CUSTOM_MODELS` 只保留井陉中实际可用的模型：
+
+```bash title=".env"
+CUSTOM_MODELS="-all,+<模型名称>"
+```
+
+示例：
+
+```bash title=".env"
+CUSTOM_MODELS="-all,+gpt-4.1"
+DEFAULT_MODEL="gpt-4.1"
+```
+
+模型名称必须与井陉控制台显示一致。首次验证建议只开放一个模型，确认链路正常后再逐步扩展。
+
+### 5. 重新部署或重启
+
+修改环境变量后，需要重新部署或重启 NextChat。完成后进入页面，选择目标模型，并发送一条测试消息：
+
+```txt
+请用一句话介绍你自己。
+```
+
+如果 NextChat 能正常返回，并且井陉控制台中出现调用记录，说明接入已经完成。
+
+## Docker 示例
+
+如使用 Docker，可以参考以下方式启动：
+
+```bash
+docker run -d -p 3000:3000 \
+  -e OPENAI_API_KEY="<你的井陉令牌>" \
+  -e BASE_URL="https://api.jingxing.uk" \
+  -e CODE="your-password" \
+  -e CUSTOM_MODELS="-all,+gpt-4.1" \
+  -e DEFAULT_MODEL="gpt-4.1" \
+  yidadaa/chatgpt-next-web
+```
+
+请根据控制台实际可用模型替换 `gpt-4.1`。
+
+## Vercel 示例
+
+如使用 Vercel 部署，在项目的 Environment Variables 中添加：
+
+| Key | Value |
+| --- | --- |
+| `OPENAI_API_KEY` | 井陉令牌 |
+| `BASE_URL` | `https://api.jingxing.uk` |
+| `CODE` | 访问密码，可选但建议设置 |
+| `CUSTOM_MODELS` | `-all,+<模型名称>` |
+| `DEFAULT_MODEL` | 默认模型名称 |
+
+保存后重新部署项目。只有重新部署后，新的环境变量才会生效。
+
+## 推荐可选变量
+
+如果 NextChat 面向多人使用，建议同时检查以下变量：
+
+| 变量 | 建议 | 说明 |
+| --- | --- | --- |
+| `HIDE_USER_API_KEY` | `1` | 不希望用户在前端自行填写 API Key 时启用 |
+| `ENABLE_BALANCE_QUERY` | `0` | 不使用 OpenAI 官方余额查询，将用量查看统一放在井陉控制台 |
+
+这些变量不是完成接入的必要条件，但可以让公开或团队部署更可控。
+
+## 界面示意
 
 以下界面示意来自 NextChat 官方仓库 README 的环境变量章节，用于说明自部署场景下最关键的配置项。
 
 ![NextChat 环境变量配置示意](/img/integrations/nextchat-env-doc.png)
 
-与井陉接入直接相关的字段如下：
+与井陉接入直接相关的字段包括：
 
-- `OPENAI_API_KEY`：填写井陉令牌
-- `BASE_URL`：填写 `https://api.jingxing.uk/v1`
-- 建议先完成最小变量组合验证，再继续扩展其他部署参数
-
-## 配置步骤
-
-### 1. 在井陉侧创建 NextChat 专用令牌
-
-建议配置如下：
-
-- 名称：如 `nextchat-web`
-- 分组：适合 Web 聊天场景的通用分组
-- 模型限制：仅开放计划在 NextChat 中使用的模型
-- 额度：覆盖验证与日常使用需求
-
-### 2. 在部署环境中设置变量
-
-```bash
-OPENAI_API_KEY=<YOUR_JINGXING_TOKEN>
-BASE_URL=https://api.jingxing.uk/v1
-```
-
-无论使用 Docker、Vercel 还是 `.env.local`，本质上都是为 NextChat 提供以上最小配置。
-
-### 3. 仅验证一个模型
-
-部署完成后，建议仅选择一个已验证可用的模型执行首次对话请求，确认主链路稳定后再扩展更多模型。
-
-## 可选的界面配置路径
-
-若当前版本支持在界面中覆盖 OpenAI endpoint，也可以在设置中填写：
-
-- API Key：井陉令牌
-- Base URL：`https://api.jingxing.uk/v1`
-
-但从维护角度看，自部署环境变量仍然是更推荐的长期方案。
+- `OPENAI_API_KEY`：填写井陉令牌。
+- `BASE_URL`：填写 `https://api.jingxing.uk`。
+- `CUSTOM_MODELS`：限制模型列表，减少用户误选。
+- `CODE`：设置访问密码，控制页面使用范围。
+- `HIDE_USER_API_KEY`：按需隐藏用户侧 API Key 输入。
 
 ## 验证方法
 
-建议按以下顺序完成验证：
+推荐按以下顺序验证：
 
-1. 在命令行中使用当前令牌执行 `GET /v1/models`
-2. 配置 `OPENAI_API_KEY` 与 `BASE_URL`
-3. 重启或重新部署 NextChat
-4. 在界面中选择一个模型
-5. 发起一次简单对话请求
+1. 在井陉控制台确认令牌处于启用状态。
+2. 确认 `OPENAI_API_KEY` 已设置为井陉令牌。
+3. 确认 `BASE_URL` 已设置为 `https://api.jingxing.uk`，且没有 `/v1`。
+4. 如需限制模型，确认 `CUSTOM_MODELS` 中的模型名称正确。
+5. 重新部署或重启 NextChat。
+6. 在 NextChat 中选择目标模型并发送测试消息。
+7. 回到井陉控制台查看调用记录和额度消耗。
+
+## 注意事项
+
+- `BASE_URL` 不要填写 `/v1` 后缀。
+- 不建议在公开部署中留空 `CODE`。
+- 不建议把真实令牌写入前端代码或公开仓库。
+- 如果默认模型列表过多，建议使用 `CUSTOM_MODELS="-all,+模型名"` 收紧可选项。
+- 如果不希望用户自行填写自己的 API Key，可结合当前版本配置隐藏用户 API Key 输入入口。
+- 余额查询通常依赖 OpenAI 官方账单接口。若使用井陉作为中转接入，不建议开启余额查询，将用量查看统一放在井陉控制台中完成。
 
 ## 常见问题
 
-### 模型列表异常
+### Base URL 应该填写什么
 
-建议优先检查：
+填写：
 
-- 当前令牌是否限制了模型
-- 当前分组是否开放这些模型
-- `BASE_URL` 是否准确指向 `https://api.jingxing.uk/v1`
+```txt
+https://api.jingxing.uk
+```
 
-### 认证失败
+不要填写：
 
-建议依次检查：
+```txt
+https://api.jingxing.uk/v1
+```
 
-- `OPENAI_API_KEY` 是否完整复制
-- 当前令牌是否过期、停用或无效
-- NextChat 是否仍在使用旧环境变量
+NextChat 会自动拼接 `v1/chat/completions` 和 `v1/models` 等路径。如果 `BASE_URL` 已经包含 `/v1`，最终请求可能变成 `/v1/v1/chat/completions`。
 
 ### 请求仍然发送到 OpenAI 官方地址
 
-此类问题通常说明：
+常见原因包括：
 
-- `BASE_URL` 未生效
-- 服务未重启
-- 当前部署环境未正确加载变量
+- `BASE_URL` 没有设置成功。
+- 修改环境变量后没有重新部署或重启。
+- 当前部署环境读取的是旧变量。
+- 在页面设置中启用了其他自定义配置。
 
-### 模型过多导致体验混乱
+### 模型列表中没有目标模型
 
-建议先保留少量模型，并明确默认模型，再逐步扩展。
+请检查：
 
-## 实践建议
+- 当前令牌是否有目标模型权限。
+- `CUSTOM_MODELS` 是否写错模型名称。
+- 模型名称是否与井陉控制台显示一致。
+- 修改环境变量后是否已经重新部署。
 
-- 为 NextChat 单独签发令牌
-- 优先使用环境变量接入井陉
-- 首次仅配置少量模型
-- 先验证主链路，再扩展其他配置
-- 出现问题时，优先以命令行请求验证 API 链路
+### 模型过多导致用户选错
+
+建议使用：
+
+```bash
+CUSTOM_MODELS="-all,+<模型名称>"
+DEFAULT_MODEL="<模型名称>"
+```
+
+首次只开放一个模型。确认稳定后，再根据实际使用场景逐步增加。
+
+### 认证失败或 401
+
+请依次检查：
+
+- `OPENAI_API_KEY` 是否完整复制，且以 `sk-` 开头。
+- 当前令牌是否启用，且仍有可用额度。
+- 当前令牌是否有目标模型权限。
+- `BASE_URL` 是否填写为 `https://api.jingxing.uk`。
+
+### 如何确认请求是否经过井陉
+
+最直接的方式是在井陉控制台查看调用记录。若 NextChat 返回成功，但控制台没有记录，通常说明当前请求没有使用井陉 endpoint，或部署仍在使用旧环境变量。
 
 ## 官方参考
 
+- [NextChat: Environment Variables](https://docs.nextchat.dev/quickstart/selfhost/env)
+- [NextChat: Deploy with Vercel](https://docs.nextchat.dev/quickstart/selfhost/vercel)
 - [NextChat GitHub README](https://github.com/ChatGPTNextWeb/NextChat)
-- [NextChat Docs: OpenAI Provider](https://docs.nextchat.dev/models/openai)
-- [NextChat Docs: custom endpoint example](https://docs.nextchat.dev/models/groq)
 
 ## 继续阅读
 
 - [Open WebUI](/docs/integrations/open-webui)
-- [Cherry Studio](/docs/integrations/cherry-studio)
-- [HTTP 状态码总览](/docs/faq/http-status-codes)
+- [令牌管理](/docs/platform/token-management)
+- [错误与重试](/docs/platform/errors-and-retries)
