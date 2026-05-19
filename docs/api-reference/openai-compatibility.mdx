@@ -24,7 +24,7 @@ sidebar_position: 5
 
 将原 OpenAI 地址替换为：
 
-`https://api.jingxing.uk/v1`
+`https://api.jingxing.io/v1`
 
 ### 2. 替换 API Key
 
@@ -83,14 +83,14 @@ sidebar_position: 5
 建议先执行模型列表查询：
 
 ```bash
-curl https://api.jingxing.uk/v1/models \
+curl https://api.jingxing.io/v1/models \
   -H "Authorization: Bearer <YOUR_TOKEN>"
 ```
 
 再执行最小聊天请求：
 
 ```bash
-curl https://api.jingxing.uk/v1/chat/completions \
+curl https://api.jingxing.io/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <YOUR_TOKEN>" \
   -d '{

@@ -40,7 +40,7 @@ codex --version
 | 项目 | 说明 |
 | --- | --- |
 | Codex CLI | 已安装并可运行 `codex` 命令 |
-| API endpoint | `https://api.jingxing.uk/v1` |
+| API endpoint | `https://api.jingxing.io/v1` |
 | 井陉令牌 | 在“令牌管理”中创建的 `sk-` 开头令牌 |
 | 模型名称 | 当前令牌可用且适合 Codex CLI 的模型名称，以控制台显示为准 |
 
@@ -94,7 +94,7 @@ gpt-5.3-codex
 ```toml title="~/.codex/config.toml"
 [model_providers.jingxing]
 name = "Jingxing"
-base_url = "https://api.jingxing.uk/v1"
+base_url = "https://api.jingxing.io/v1"
 env_key = "JINGXING_API_KEY"
 wire_api = "responses"
 
@@ -182,7 +182,7 @@ codex --profile jingxing --model gpt-5.3-codex
 填写：
 
 ```txt
-https://api.jingxing.uk/v1
+https://api.jingxing.io/v1
 ```
 
 Codex CLI 的自定义 provider 配置需要写入 API base URL。井陉的 Responses 接口位于 `/v1/responses`，因此这里需要包含 `/v1`。

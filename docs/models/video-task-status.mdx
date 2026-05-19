@@ -36,7 +36,7 @@ sidebar_position: 2
 ## OpenAI 兼容任务查询
 
 ```bash
-curl https://api.jingxing.uk/v1/videos/<TASK_ID> \
+curl https://api.jingxing.io/v1/videos/<TASK_ID> \
   -H "Authorization: Bearer <YOUR_TOKEN>"
 ```
 
@@ -51,7 +51,7 @@ curl https://api.jingxing.uk/v1/videos/<TASK_ID> \
 任务完成后，可进一步获取视频内容：
 
 ```bash
-curl -L https://api.jingxing.uk/v1/videos/<TASK_ID>/content \
+curl -L https://api.jingxing.io/v1/videos/<TASK_ID>/content \
   -H "Authorization: Bearer <YOUR_TOKEN>" \
   -o result.mp4
 ```
@@ -61,14 +61,14 @@ curl -L https://api.jingxing.uk/v1/videos/<TASK_ID>/content \
 ### 文生视频
 
 ```bash
-curl https://api.jingxing.uk/kling/v1/videos/text2video/<TASK_ID> \
+curl https://api.jingxing.io/kling/v1/videos/text2video/<TASK_ID> \
   -H "Authorization: Bearer <YOUR_TOKEN>"
 ```
 
 ### 图生视频
 
 ```bash
-curl https://api.jingxing.uk/kling/v1/videos/image2video/<TASK_ID> \
+curl https://api.jingxing.io/kling/v1/videos/image2video/<TASK_ID> \
   -H "Authorization: Bearer <YOUR_TOKEN>"
 ```
 

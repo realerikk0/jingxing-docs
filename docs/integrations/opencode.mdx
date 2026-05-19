@@ -22,11 +22,11 @@ OpenCode 是一款开源 AI 编码 Agent，支持终端界面、桌面应用和 
 | 项目 | 说明 |
 | --- | --- |
 | OpenCode | 已安装并可运行 `opencode` 命令 |
-| API endpoint | `https://api.jingxing.uk/v1` |
+| API endpoint | `https://api.jingxing.io/v1` |
 | 井陉令牌 | 在“令牌管理”中创建的 `sk-` 开头令牌 |
 | 模型名称 | 当前令牌可用的模型名称，以控制台显示为准 |
 
-> OpenCode 的 OpenAI-compatible provider 需要填写包含 `/v1` 的 API endpoint。接入井陉时请使用 `https://api.jingxing.uk/v1`。
+> OpenCode 的 OpenAI-compatible provider 需要填写包含 `/v1` 的 API endpoint。接入井陉时请使用 `https://api.jingxing.io/v1`。
 
 ## 安装 OpenCode
 
@@ -113,7 +113,7 @@ opencode
       "npm": "@ai-sdk/openai-compatible",
       "name": "Jingxing",
       "options": {
-        "baseURL": "https://api.jingxing.uk/v1"
+        "baseURL": "https://api.jingxing.io/v1"
       },
       "models": {
         "gpt-4.1": {
@@ -176,7 +176,7 @@ export JINGXING_API_KEY="<你的井陉令牌>"
       "npm": "@ai-sdk/openai-compatible",
       "name": "Jingxing",
       "options": {
-        "baseURL": "https://api.jingxing.uk/v1",
+        "baseURL": "https://api.jingxing.io/v1",
         "apiKey": "{env:JINGXING_API_KEY}"
       },
       "models": {
@@ -209,14 +209,14 @@ export JINGXING_API_KEY="<你的井陉令牌>"
 1. 执行 `opencode --version`，确认 OpenCode 已安装。
 2. 执行 `opencode auth list`，确认 `jingxing` 凭证已存在。
 3. 检查 `opencode.json` 中是否存在 `provider.jingxing`。
-4. 确认 `options.baseURL` 为 `https://api.jingxing.uk/v1`。
+4. 确认 `options.baseURL` 为 `https://api.jingxing.io/v1`。
 5. 执行 `/models`，选择 `Jingxing` 下的目标模型。
 6. 发送一条测试请求。
 7. 回到井陉控制台查看调用记录和额度消耗。
 
 ## 注意事项
 
-- `baseURL` 需要填写 `https://api.jingxing.uk/v1`，不要省略 `/v1`。
+- `baseURL` 需要填写 `https://api.jingxing.io/v1`，不要省略 `/v1`。
 - `provider` 名称需要与 `/connect` 中填写的 Provider ID 保持一致。
 - 模型名称需要与井陉控制台显示一致。
 - 不建议多个客户端共用同一枚高权限令牌。
@@ -230,7 +230,7 @@ export JINGXING_API_KEY="<你的井陉令牌>"
 填写：
 
 ```txt
-https://api.jingxing.uk/v1
+https://api.jingxing.io/v1
 ```
 
 OpenCode 的 OpenAI-compatible provider 会基于该地址请求 OpenAI 兼容接口，因此这里需要包含 `/v1`。

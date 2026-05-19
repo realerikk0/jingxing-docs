@@ -43,7 +43,7 @@ http://localhost:3000
 | 项目 | 说明 |
 | --- | --- |
 | Open WebUI | 已安装并可以进入管理设置 |
-| API Base URL | `https://api.jingxing.uk/v1` |
+| API Base URL | `https://api.jingxing.io/v1` |
 | API Key | 在“令牌管理”中创建的 `sk-` 开头令牌 |
 | 模型名称 | 当前令牌可用的模型名称，以控制台显示为准 |
 
@@ -88,7 +88,7 @@ Admin Settings -> Connections -> OpenAI
 
 | 字段 | 填写内容 |
 | --- | --- |
-| URL / Base URL | `https://api.jingxing.uk/v1` |
+| URL / Base URL | `https://api.jingxing.io/v1` |
 | API Key | 井陉令牌，例如 `sk-...` |
 | Model IDs (Filter) | 可选；用于限制只显示指定模型 |
 
@@ -121,7 +121,7 @@ gpt-4.1
 如果希望在部署时固定井陉配置，也可以使用环境变量：
 
 ```bash title=".env"
-OPENAI_API_BASE_URL="https://api.jingxing.uk/v1"
+OPENAI_API_BASE_URL="https://api.jingxing.io/v1"
 OPENAI_API_KEY="<你的井陉令牌>"
 ```
 
@@ -142,7 +142,7 @@ OPENAI_API_KEY="<你的井陉令牌>"
 
 重点关注以下字段：
 
-- `URL`：填写 `https://api.jingxing.uk/v1`。
+- `URL`：填写 `https://api.jingxing.io/v1`。
 - `API Key`：填写井陉令牌。
 - `Model IDs (Filter)`：按需填写模型白名单。
 - 保存后在模型选择器中选择目标模型进行测试。
@@ -153,7 +153,7 @@ OPENAI_API_KEY="<你的井陉令牌>"
 
 1. 在井陉控制台确认令牌处于启用状态。
 2. 在 Open WebUI 中进入 `Admin Settings -> Connections -> OpenAI`。
-3. 填写 `https://api.jingxing.uk/v1` 和井陉令牌。
+3. 填写 `https://api.jingxing.io/v1` 和井陉令牌。
 4. 如需限制模型，在 `Model IDs (Filter)` 中添加一个模型名称。
 5. 保存连接。
 6. 在聊天界面选择目标模型并发送测试消息。
@@ -174,7 +174,7 @@ OPENAI_API_KEY="<你的井陉令牌>"
 填写：
 
 ```txt
-https://api.jingxing.uk/v1
+https://api.jingxing.io/v1
 ```
 
 Open WebUI 按 OpenAI-compatible API 调用井陉，因此这里需要包含 `/v1`。
@@ -184,7 +184,7 @@ Open WebUI 按 OpenAI-compatible API 调用井陉，因此这里需要包含 `/v
 请依次检查：
 
 - API Key 是否完整复制，且以 `sk-` 开头。
-- URL 是否填写为 `https://api.jingxing.uk/v1`。
+- URL 是否填写为 `https://api.jingxing.io/v1`。
 - 当前令牌是否启用，且仍有可用额度。
 - 当前令牌是否有至少一个聊天模型权限。
 - 网络环境是否可以访问井陉 API。

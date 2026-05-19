@@ -22,11 +22,11 @@ Claude Code 是 Anthropic 提供的命令行编码助手，可以在终端中阅
 | 项目 | 说明 |
 | --- | --- |
 | Claude Code | 已在本机安装并可运行 `claude` 命令 |
-| API endpoint | `https://api.jingxing.uk` |
+| API endpoint | `https://api.jingxing.io` |
 | 井陉令牌 | 在“令牌管理”中创建的 `sk-` 开头令牌 |
 | 模型名称 | 当前令牌可用的 Claude 模型名称，例如 `claude-sonnet-4-6`，以控制台显示为准 |
 
-> Claude Code 会在 `ANTHROPIC_BASE_URL` 后自动请求 Claude Messages 路径。配置井陉时请填写根地址 `https://api.jingxing.uk`，不要填写成 `https://api.jingxing.uk/v1`。
+> Claude Code 会在 `ANTHROPIC_BASE_URL` 后自动请求 Claude Messages 路径。配置井陉时请填写根地址 `https://api.jingxing.io`，不要填写成 `https://api.jingxing.io/v1`。
 
 ## 安装 Claude Code
 
@@ -95,7 +95,7 @@ claude-sonnet-4-6
 在启动 Claude Code 之前，先在同一个终端窗口中设置以下环境变量：
 
 ```bash
-export ANTHROPIC_BASE_URL="https://api.jingxing.uk"
+export ANTHROPIC_BASE_URL="https://api.jingxing.io"
 export ANTHROPIC_AUTH_TOKEN="<你的井陉令牌>"
 export ANTHROPIC_MODEL="<模型名称>"
 ```
@@ -103,7 +103,7 @@ export ANTHROPIC_MODEL="<模型名称>"
 示例：
 
 ```bash
-export ANTHROPIC_BASE_URL="https://api.jingxing.uk"
+export ANTHROPIC_BASE_URL="https://api.jingxing.io"
 export ANTHROPIC_AUTH_TOKEN="sk-..."
 export ANTHROPIC_MODEL="claude-sonnet-4-6"
 ```
@@ -156,7 +156,7 @@ claude --model claude-sonnet-4-6
 ```json title="~/.claude/settings.json"
 {
   "env": {
-    "ANTHROPIC_BASE_URL": "https://api.jingxing.uk",
+    "ANTHROPIC_BASE_URL": "https://api.jingxing.io",
     "ANTHROPIC_AUTH_TOKEN": "<你的井陉令牌>",
     "ANTHROPIC_MODEL": "<模型名称>"
   }
@@ -182,13 +182,13 @@ claude --model claude-sonnet-4-6
 不需要。Claude Code 会基于 `ANTHROPIC_BASE_URL` 请求 Claude Messages 接口。配置井陉时填写：
 
 ```txt
-https://api.jingxing.uk
+https://api.jingxing.io
 ```
 
 不要填写：
 
 ```txt
-https://api.jingxing.uk/v1
+https://api.jingxing.io/v1
 ```
 
 如果把 `/v1` 写进 Base URL，可能导致请求路径异常。

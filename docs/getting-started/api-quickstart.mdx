@@ -12,7 +12,7 @@ sidebar_position: 3
 
 ### Base URL
 
-`https://api.jingxing.uk/v1`
+`https://api.jingxing.io/v1`
 
 ### 鉴权方式
 
@@ -27,7 +27,7 @@ Authorization: Bearer <YOUR_TOKEN>
 建议首先执行模型列表查询，以确认令牌、网络和接口地址均已生效。
 
 ```bash
-curl https://api.jingxing.uk/v1/models \
+curl https://api.jingxing.io/v1/models \
   -H "Authorization: Bearer <YOUR_TOKEN>"
 ```
 
@@ -42,7 +42,7 @@ curl https://api.jingxing.uk/v1/models \
 完成模型列表验证后，建议使用最小聊天请求确认主链路已建立。
 
 ```bash
-curl https://api.jingxing.uk/v1/chat/completions \
+curl https://api.jingxing.io/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <YOUR_TOKEN>" \
   -d '{
@@ -105,11 +105,11 @@ curl https://api.jingxing.uk/v1/chat/completions \
 
 常见原因是接口地址未包含 `/v1` 前缀。应使用：
 
-- `https://api.jingxing.uk/v1`
+- `https://api.jingxing.io/v1`
 
 而非：
 
-- `https://api.jingxing.uk`
+- `https://api.jingxing.io`
 
 ## 继续阅读
 

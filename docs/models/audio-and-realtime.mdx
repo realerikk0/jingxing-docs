@@ -46,7 +46,7 @@ sidebar_position: 1
 ## 最小请求：文本转语音
 
 ```bash
-curl https://api.jingxing.uk/v1/audio/speech \
+curl https://api.jingxing.io/v1/audio/speech \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <YOUR_TOKEN>" \
   -d '{
@@ -62,7 +62,7 @@ curl https://api.jingxing.uk/v1/audio/speech \
 ## 最小请求：音频转录
 
 ```bash
-curl https://api.jingxing.uk/v1/audio/transcriptions \
+curl https://api.jingxing.io/v1/audio/transcriptions \
   -H "Authorization: Bearer <YOUR_TOKEN>" \
   -F "file=@/absolute/path/to/sample.mp3" \
   -F "model=whisper-1" \
@@ -78,7 +78,7 @@ curl https://api.jingxing.uk/v1/audio/transcriptions \
 ## 最小请求：音频翻译
 
 ```bash
-curl https://api.jingxing.uk/v1/audio/translations \
+curl https://api.jingxing.io/v1/audio/translations \
   -H "Authorization: Bearer <YOUR_TOKEN>" \
   -F "file=@/absolute/path/to/sample.mp3" \
   -F "model=whisper-1"
@@ -91,7 +91,7 @@ curl https://api.jingxing.uk/v1/audio/translations \
 `/v1/realtime` 为 WebSocket 端点，不是普通的 HTTP JSON 接口。连接示例形式如下：
 
 ```text
-wss://api.jingxing.uk/v1/realtime?model=gpt-4o-realtime-preview
+wss://api.jingxing.io/v1/realtime?model=gpt-4o-realtime-preview
 ```
 
 建立连接时，应同时确认：

@@ -32,10 +32,10 @@ Cherry Studio 是一款桌面 AI 聊天客户端，支持 Windows、macOS 和 Li
 | --- | --- |
 | Cherry Studio | 已安装并可以正常打开 |
 | API Key | 在“令牌管理”中创建的 `sk-` 开头令牌 |
-| API 地址 | `https://api.jingxing.uk` |
+| API 地址 | `https://api.jingxing.io` |
 | 模型名称 | 当前令牌可用的模型名称，以控制台显示为准 |
 
-> 注意：Cherry Studio 的 `API 地址` 字段通常会自动拼接标准 OpenAI 聊天路径 `/v1/chat/completions`。因此在该字段中填写 `https://api.jingxing.uk` 即可。若你的 Cherry Studio 版本明确显示为 `Base URL`，并要求填写 OpenAI SDK 风格地址，可改填 `https://api.jingxing.uk/v1` 后再进行连通性检查。
+> 注意：Cherry Studio 的 `API 地址` 字段通常会自动拼接标准 OpenAI 聊天路径 `/v1/chat/completions`。因此在该字段中填写 `https://api.jingxing.io` 即可。若你的 Cherry Studio 版本明确显示为 `Base URL`，并要求填写 OpenAI SDK 风格地址，可改填 `https://api.jingxing.io/v1` 后再进行连通性检查。
 
 建议为 Cherry Studio 单独创建令牌，不要复用生产服务、团队共享或其他客户端正在使用的高权限令牌。
 
@@ -90,7 +90,7 @@ Cherry Studio 是一款桌面 AI 聊天客户端，支持 Windows、macOS 和 Li
 | 字段 | 填写内容 |
 | --- | --- |
 | API Key | 井陉令牌，例如 `sk-...` |
-| API 地址 | `https://api.jingxing.uk` |
+| API 地址 | `https://api.jingxing.io` |
 
 填写完成后，请确认服务商右上角开关处于开启状态。Cherry Studio 官方文档说明，服务商未开启时，即使配置已经保存，也可能无法在模型列表中找到对应模型。
 
@@ -163,13 +163,13 @@ Cherry Studio 支持两种添加模型的方式：
 在 Cherry Studio 的 `API 地址` 字段中，优先填写：
 
 ```txt
-https://api.jingxing.uk
+https://api.jingxing.io
 ```
 
 Cherry Studio 通常会自动拼接标准 OpenAI 聊天路径。如果当前版本明确要求填写 OpenAI SDK 风格 `Base URL`，可改填：
 
 ```txt
-https://api.jingxing.uk/v1
+https://api.jingxing.io/v1
 ```
 
 填写后请使用 Cherry Studio 的检查按钮验证。若验证失败，优先在这两个地址之间切换排查。

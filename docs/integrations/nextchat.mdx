@@ -32,11 +32,11 @@ NextChat 是一款轻量级 AI 聊天前端，支持 Web、自部署以及多端
 | 项目 | 说明 |
 | --- | --- |
 | NextChat | 已自部署，或准备通过 Docker / Vercel 部署 |
-| API Base URL | `https://api.jingxing.uk` |
+| API Base URL | `https://api.jingxing.io` |
 | API Key | 在“令牌管理”中创建的 `sk-` 开头令牌 |
 | 模型名称 | 当前令牌可用的模型名称，以控制台显示为准 |
 
-> 注意：NextChat 的 `BASE_URL` 默认值是 `https://api.openai.com`，它会在请求时自动拼接 `v1/chat/completions`、`v1/models` 等路径。因此接入井陉时应填写 `https://api.jingxing.uk`，不要填写 `https://api.jingxing.uk/v1`，否则可能出现 `/v1/v1/...` 路径错误。
+> 注意：NextChat 的 `BASE_URL` 默认值是 `https://api.openai.com`，它会在请求时自动拼接 `v1/chat/completions`、`v1/models` 等路径。因此接入井陉时应填写 `https://api.jingxing.io`，不要填写 `https://api.jingxing.io/v1`，否则可能出现 `/v1/v1/...` 路径错误。
 
 建议为 NextChat 单独创建令牌，不要复用生产服务、团队共享或其他客户端正在使用的高权限令牌。
 
@@ -69,7 +69,7 @@ NextChat 是一款轻量级 AI 聊天前端，支持 Web、自部署以及多端
 
 ```bash title=".env"
 OPENAI_API_KEY="<你的井陉令牌>"
-BASE_URL="https://api.jingxing.uk"
+BASE_URL="https://api.jingxing.io"
 ```
 
 其中：
@@ -131,7 +131,7 @@ DEFAULT_MODEL="gpt-4.1"
 ```bash
 docker run -d -p 3000:3000 \
   -e OPENAI_API_KEY="<你的井陉令牌>" \
-  -e BASE_URL="https://api.jingxing.uk" \
+  -e BASE_URL="https://api.jingxing.io" \
   -e CODE="your-password" \
   -e CUSTOM_MODELS="-all,+gpt-4.1" \
   -e DEFAULT_MODEL="gpt-4.1" \
@@ -147,7 +147,7 @@ docker run -d -p 3000:3000 \
 | Key | Value |
 | --- | --- |
 | `OPENAI_API_KEY` | 井陉令牌 |
-| `BASE_URL` | `https://api.jingxing.uk` |
+| `BASE_URL` | `https://api.jingxing.io` |
 | `CODE` | 访问密码，可选但建议设置 |
 | `CUSTOM_MODELS` | `-all,+<模型名称>` |
 | `DEFAULT_MODEL` | 默认模型名称 |
@@ -174,7 +174,7 @@ docker run -d -p 3000:3000 \
 与井陉接入直接相关的字段包括：
 
 - `OPENAI_API_KEY`：填写井陉令牌。
-- `BASE_URL`：填写 `https://api.jingxing.uk`。
+- `BASE_URL`：填写 `https://api.jingxing.io`。
 - `CUSTOM_MODELS`：限制模型列表，减少用户误选。
 - `CODE`：设置访问密码，控制页面使用范围。
 - `HIDE_USER_API_KEY`：按需隐藏用户侧 API Key 输入。
@@ -185,7 +185,7 @@ docker run -d -p 3000:3000 \
 
 1. 在井陉控制台确认令牌处于启用状态。
 2. 确认 `OPENAI_API_KEY` 已设置为井陉令牌。
-3. 确认 `BASE_URL` 已设置为 `https://api.jingxing.uk`，且没有 `/v1`。
+3. 确认 `BASE_URL` 已设置为 `https://api.jingxing.io`，且没有 `/v1`。
 4. 如需限制模型，确认 `CUSTOM_MODELS` 中的模型名称正确。
 5. 重新部署或重启 NextChat。
 6. 在 NextChat 中选择目标模型并发送测试消息。
@@ -207,13 +207,13 @@ docker run -d -p 3000:3000 \
 填写：
 
 ```txt
-https://api.jingxing.uk
+https://api.jingxing.io
 ```
 
 不要填写：
 
 ```txt
-https://api.jingxing.uk/v1
+https://api.jingxing.io/v1
 ```
 
 NextChat 会自动拼接 `v1/chat/completions` 和 `v1/models` 等路径。如果 `BASE_URL` 已经包含 `/v1`，最终请求可能变成 `/v1/v1/chat/completions`。
@@ -254,7 +254,7 @@ DEFAULT_MODEL="<模型名称>"
 - `OPENAI_API_KEY` 是否完整复制，且以 `sk-` 开头。
 - 当前令牌是否启用，且仍有可用额度。
 - 当前令牌是否有目标模型权限。
-- `BASE_URL` 是否填写为 `https://api.jingxing.uk`。
+- `BASE_URL` 是否填写为 `https://api.jingxing.io`。
 
 ### 如何确认请求是否经过井陉
 
